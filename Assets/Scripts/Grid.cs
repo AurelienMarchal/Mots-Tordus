@@ -77,13 +77,28 @@ public class Grid{
 
 
     void GenerateTopAndRightDefinitionTiles(){
-        for (int i = 0; i < width; i += 2){
+        foreach (var tile in tiles){
+            if(IsTileAtTopLeftCorner(tile)){
+                SetTile(new DefinitionTile(tile.x, tile.y, rightWordGoingDown:true, downWordGoingRight:true));
+            }
+        }
+
+        /*
+        for (int i = 2; i < width; i += 2){
             SetTile(new DefinitionTile(i, 0));
         }
 
-        for (int j = 0; j < height; j += 2){
+        for (int j = 2; j < height; j += 2){
             SetTile(new DefinitionTile(0, j));
         }
+        */
+    }
+
+    bool IsTileAtTopLeftCorner(Tile tile){
+        var topTile = GetTileAt(tile.x, tile.y - 1);
+        var leftTile = GetTileAt(tile.x - 1, tile.y);
+
+        return (topTile == null || topTile.isObstacle) && (leftTile == null || leftTile.isObstacle);
     }
 
     void GenerateObstacleTiles(){
