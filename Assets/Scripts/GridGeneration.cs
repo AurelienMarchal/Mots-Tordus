@@ -4,6 +4,17 @@ using UnityEngine;
 
 public class GridGeneration : MonoBehaviour
 {
+    [SerializeField]
+    GridManager gridManager;
+
+    [SerializeField]
+    int width;
+
+    [SerializeField]
+    int height;
+    
+    
+    
     // Start is called before the first frame update
     void Start()
     {
