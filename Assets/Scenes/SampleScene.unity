@@ -1024,6 +1024,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   wordListFile: {fileID: 4900000, guid: da667b0b81e7c584cb91f156776155fb, type: 3}
   wordDictionnaryFileName: wordDictionnary
+  wordDictionnaryByWordLenghtFileName: wordDictionnaryByWordLenght
   wordSearch: 
   result: []
 --- !u!1 &1953080230

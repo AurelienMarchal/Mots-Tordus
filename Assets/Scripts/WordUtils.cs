@@ -46,7 +46,21 @@ public class WordUtils{
         return count;
     }
 
+    public static int CalculateWordComplexityScore(string word){
+
+        int score = 0;
+
+        foreach (char c in word){
+            score += letterRarityScore[Array.IndexOf(letters, c)];
+        }
+
+        return score;
+
+    }
+
     public static readonly char[] letters = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
+
+    public static readonly int[] letterRarityScore = {1, 5, 2, 2, 1, 5, 10, 20, 2, 10, 100, 1, 2, 1, 2, 1, 50, 1, 1, 1, 2, 5, 100, 50, 100, 50};
 
 
     public static readonly char[] specialChars = {'-', '\'', '.'};

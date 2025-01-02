@@ -17,6 +17,9 @@ public class WordEntry
     [ReadOnly]
     public string wordWithoutSpecialChars;
 
+    [ReadOnly]
+    public int complexityScore;
+
     [SerializeField]
     public List<string> level1Definitions;
 
@@ -38,6 +41,7 @@ public class WordEntry
         this.word = word;
         wordWithoutDiacritics = WordUtils.RemoveDiacritics(word.ToUpper());
         wordWithoutSpecialChars = WordUtils.RemoveSpecialChars(wordWithoutDiacritics);
+        complexityScore = WordUtils.CalculateWordComplexityScore(wordWithoutSpecialChars);
 
     }
 

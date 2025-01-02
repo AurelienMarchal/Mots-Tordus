@@ -3,23 +3,80 @@ using System.Collections.Generic;
 using UnityEngine;
 using Newtonsoft.Json;
 using System.Text;
+using System.IO;
 
 public class WordDictionnary {
 
+    private Dictionary<string, WordEntry> wordDictionnary;
+
+    public Dictionary<int, List<WordEntry>> wordDictionnaryByWordLenght = new Dictionary<int, List<WordEntry>>();
 
 
-    public Dictionary<string, WordEntry> wordDictionnary = new Dictionary<string, WordEntry>();
+    public bool hasChanged;
 
+
+    public WordDictionnary(){
+        wordDictionnary = new Dictionary<string, WordEntry>();
+
+        wordDictionnaryByWordLenght = new Dictionary<int, List<WordEntry>>();
+        hasChanged = true;
+    }
+
+    public WordDictionnary(Dictionary<string, WordEntry> wordDictionnary, Dictionary<int, List<WordEntry>> wordDictionnaryByWordLenght){
+        this.wordDictionnary = wordDictionnary;
+        this.wordDictionnaryByWordLenght = wordDictionnaryByWordLenght;
+        hasChanged = false;
+    }
 
     public void AddEntry(WordEntry wordEntry) {
         wordDictionnary[wordEntry.wordWithoutSpecialChars] = wordEntry;
+
+        hasChanged = true;
+        var wordLenght = wordEntry.wordWithoutSpecialChars.Length;
+        if(!wordDictionnaryByWordLenght.ContainsKey(wordLenght)){
+            wordDictionnaryByWordLenght[wordLenght] = new List<WordEntry>{wordEntry};
+        }
+        else{
+            
+            for (int i = 0; i < wordDictionnaryByWordLenght[wordLenght].Count; i++){
+                if(wordDictionnaryByWordLenght[wordLenght][i].complexityScore >= wordEntry.complexityScore){
+                    wordDictionnaryByWordLenght[wordLenght].Insert(i, wordEntry);
+                    break;
+                }
+            }
+        }
     }
 
+    public void SaveDictionnariesToFile(string wordDictionnaryFilePath, string wordDictionnaryByWordLenghtFilePath){
 
+        if(!hasChanged){
+            return;
+        }
 
-    public List<WordEntry> SearchWord(string word) {
+        if (!File.Exists(wordDictionnaryFilePath)){
+            using (FileStream fs = File.Create(wordDictionnaryFilePath)) { };
+        }
+
+        using(var sw = new StreamWriter(wordDictionnaryFilePath)){
+            sw.Write(JsonConvert.SerializeObject(wordDictionnary));
+        }
+
+        if (!File.Exists(wordDictionnaryByWordLenghtFilePath)){
+            using (FileStream fs = File.Create(wordDictionnaryByWordLenghtFilePath)) { }
+        }
+
+        using(var sw = new StreamWriter(wordDictionnaryByWordLenghtFilePath)){
+            sw.Write(JsonConvert.SerializeObject(wordDictionnaryByWordLenght));
+        }
+    }
+
+    
+
+    public List<WordEntry> SearchWord(string word, out int iterations) {
 
         List<WordEntry> results = new List<WordEntry>();
+
+        iterations = 0;
 
         if(word == null) return results;
 
@@ -37,10 +94,10 @@ public class WordDictionnary {
                     indexesToCheck[i] = WordUtils.letters.Length - 1;
                 }
 
-                var iterationCount = 0;
-
                 while(indexesToCheck[0] >= 0){
                     //Create word
+
+                    iterations ++;
 
                     var wordToSeachBuilder = new StringBuilder();
 
@@ -72,9 +129,9 @@ public class WordDictionnary {
                         }
                     }
 
-                    iterationCount ++;
+                    
 
-                    if(iterationCount > 20000){
+                    if(iterations > 20000){
                         Debug.Log("REACHED ITERATION LIMIT");
                     }
                 }
@@ -82,7 +139,29 @@ public class WordDictionnary {
 
             }
             else{
-                
+                if(wordDictionnaryByWordLenght.ContainsKey(newWord.Length)){
+                    foreach(var wordEntry in wordDictionnaryByWordLenght[newWord.Length]){
+                        
+                        if(newWord.Length != wordEntry.wordWithoutSpecialChars.Length){
+                            continue;
+                        }
+
+                        iterations ++;
+
+                        var matchFound = true;
+
+                        for (int i = 0; i < newWord.Length; i++){
+                            matchFound = newWord[i] == '*' || newWord[i] == wordEntry.wordWithoutSpecialChars[i];
+                            if(!matchFound){
+                                break;
+                            }
+                        }
+
+                        if(matchFound){
+                            results.Add(wordEntry);
+                        }
+                    }
+                }
             }
         }
 
