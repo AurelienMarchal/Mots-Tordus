@@ -1,28 +1,37 @@
 
 
+using System.Collections.Generic;
+
 public class DefinitionTile : Tile
 {
-    public string rightDefinition {get; private set;}
+    public string acrossDefinition {get; private set;}
 
     public string downDefinition {get; private set;}
 
-    public bool rightWordGoingDown {get; private set;}
+    public bool acrossWordStartsOneTileLower {get; private set;}
 
-    public bool downWordGoingRight {get; private set;}
+    public bool downWordStartsOneTileRight {get; private set;}
+
+    public List<Tile> tilesReachedByDownDefinition;
+
+    public List<Tile> tilesReachedByAcrossDefinition;
 
     public DefinitionTile(
         int x, 
         int y, 
-        string rightDefinition = null, 
+        string acrossDefinition = null, 
         string downDefinition = null, 
-        bool rightWordGoingDown = false, 
-        bool downWordGoingRight = false
+        bool acrossWordStartsOneTileLower = false, 
+        bool downWordStartsOneTileRight = false
+
     ) : base(x, y, isDefinition:true){
     
-        this.rightDefinition = rightDefinition;
+        this.acrossDefinition = acrossDefinition;
         this.downDefinition = downDefinition;
-        this.rightWordGoingDown = rightWordGoingDown;
-        this.downWordGoingRight = downWordGoingRight;
+        this.acrossWordStartsOneTileLower = acrossWordStartsOneTileLower;
+        this.downWordStartsOneTileRight = downWordStartsOneTileRight;
+        tilesReachedByAcrossDefinition = new List<Tile>();
+        tilesReachedByDownDefinition = new List<Tile>();
 
     
     }

@@ -18,4 +18,9 @@ public class Tile{
         this.isVoid = isVoid;
         this.isDefinition = isDefinition;
     }
+
+
+    public override string ToString(){
+        return $"Tile ({x}, {y})";
+    }
 }

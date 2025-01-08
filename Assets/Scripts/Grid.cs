@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 
 
@@ -30,10 +31,10 @@ public class Grid{
         }
 
         GenerateObstacleTiles();
-        GenerateTopAndRightDefinitionTiles();
+        //GenerateTopAndRightDefinitionTiles();
     }
 
-    void SetTile(Tile tile){
+    public void SetTile(Tile tile){
         if(tiles == null){
             return;
         }
@@ -45,20 +46,18 @@ public class Grid{
             return;
         }
 
-        var index = tile.x * width + tile.y;
+        var index = tile.x * height + tile.y;
+
+        //Debug.Log($"Putting {tile} at index {index}");
 
         if(index < 0 || index > tiles.Length - 1){
-            return;
-        }
-
-        if(!tiles[index].isVoid){
             return;
         }
 
         tiles[index] = tile;
     }
 
-    Tile GetTileAt(int x, int y){
+    public Tile GetTileAt(int x, int y){
 
         if(x < 0 || x > width - 1){
             return null;
@@ -67,11 +66,13 @@ public class Grid{
             return null;
         }
 
-        var index = x * width + y;
+        var index = x * height + y;
 
         if(index < 0 || index > tiles.Length - 1){
             return null;
         }
+
+        //Debug.Log($"At {x}, {y} there is tile {tiles[index]}");
         return tiles[index];
     }
 
@@ -79,7 +80,7 @@ public class Grid{
     void GenerateTopAndRightDefinitionTiles(){
         foreach (var tile in tiles){
             if(IsTileAtTopLeftCorner(tile)){
-                SetTile(new DefinitionTile(tile.x, tile.y, rightWordGoingDown:true, downWordGoingRight:true));
+                SetTile(new DefinitionTile(tile.x, tile.y, acrossWordStartsOneTileLower:true, downWordStartsOneTileRight:true));
             }
         }
 
@@ -105,13 +106,51 @@ public class Grid{
         foreach (var obstacle in obstacles){
             for (int i = 0; i < obstacle.width; i++){
                 for (int j = 0; j < obstacle.height; j++){
-                    
+                    SetTile(new ObstacleTile(obstacle.x + i, obstacle.y + j));
                 }
             }
         }
     }
 
 
+    
+    void UpdateTilesReachedByDefinition(int row, int column){
+
+    }
+
+
+    bool IsValidTileForDefinition(Tile tile){
+
+        return true;
+
+
+    }
+
+    public List<Tile> GetTilesReachedByAcrossDefinitionTile(DefinitionTile definitionTile){
+        var tiles = new List<Tile>();
+
+        var tileReached = GetTileAt(definitionTile.x + (!definitionTile.acrossWordStartsOneTileLower ? 1 : 0), definitionTile.y + (definitionTile.acrossWordStartsOneTileLower ? 1 : 0));
+
+        while(tileReached != null && !tileReached.isObstacle && !tileReached.isDefinition){
+            tiles.Add(tileReached);
+            tileReached = GetTileAt(tileReached.x + 1, tileReached.y);
+        }
+
+        return tiles;
+    }
+
+    public List<Tile> GetTilesReachedByDownDefinitionTile(DefinitionTile definitionTile){
+        var tiles = new List<Tile>();
+
+        var tileReached = GetTileAt(definitionTile.x + (definitionTile.downWordStartsOneTileRight ? 1 : 0), definitionTile.y + (!definitionTile.downWordStartsOneTileRight ? 1 : 0));
+
+        while(tileReached != null && !tileReached.isObstacle && !tileReached.isDefinition){
+            tiles.Add(tileReached);
+            tileReached = GetTileAt(tileReached.x, tileReached.y + 1);
+        }
+
+        return tiles;
+    }
 
 
 
