@@ -91,4 +91,9 @@ public class WordDictionnaryManager : MonoBehaviour
     void OnDisable(){
         wordDictionnary.SaveDictionnariesToFile(wordDictionnaryFilePath, wordDictionnaryByWordLenghtFilePath);
     }
+
+
+    void AddEntry(){
+        
+    }
 }
