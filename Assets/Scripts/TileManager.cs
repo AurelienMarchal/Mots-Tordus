@@ -24,6 +24,18 @@ public class TileManager : MonoBehaviour
 
     [SerializeField]
     Canvas mainCanvas;
+
+    [SerializeField]
+    Renderer _renderer;
+
+    [SerializeField]
+    Color colorDefault;
+
+    [SerializeField]
+    Color colorVoid;
+
+    [SerializeField]
+    Color colorObstacle;
     
     // Start is called before the first frame update
     void Start()
@@ -48,5 +60,7 @@ public class TileManager : MonoBehaviour
         }
 
         mainCanvas.gameObject.SetActive(!(tile.isVoid || tile.isObstacle));
+
+        _renderer.material.color = tile.isObstacle ? colorObstacle : (tile.isVoid ? colorVoid : colorDefault);
     }
 }

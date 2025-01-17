@@ -570,6 +570,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   highlight: {fileID: 843585449915122387}
   mainCanvas: {fileID: 2820477798137828417}
+  _renderer: {fileID: 5739230206776971078}
+  colorDefault: {r: 0.9843137, g: 0.7882353, b: 0.43529412, a: 1}
+  colorVoid: {r: 0.9843137, g: 0.7882353, b: 0.43529412, a: 1}
+  colorObstacle: {r: 0.78867924, g: 0.5426156, b: 0.09970094, a: 1}
 --- !u!114 &843585449915122387
 MonoBehaviour:
   m_ObjectHideFlags: 0

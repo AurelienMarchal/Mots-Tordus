@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-
+// TODO: have list for only definition tiles
 public class Grid{
 
     private Tile[] tiles;
@@ -112,6 +112,57 @@ public class Grid{
         }
     }
 
+    public void UpdateTilesReachedByDefinition(){
+        foreach (var tile in tiles){
+            if(tile is DefinitionTile definitionTile){
+                definitionTile.tilesReachedByAcrossDefinition = GetTilesReachedByAcrossDefinitionTile(definitionTile);
+                definitionTile.tilesReachedByDownDefinition = GetTilesReachedByDownDefinitionTile(definitionTile);
+            }
+        }
+    }
+
+    public DefinitionTile FindDefinitionTileWithLongestAcrossNullWord(){
+        DefinitionTile definitionTileToReturn = null;
+        int maxWordLenght = 0;
+
+        foreach (var tile in tiles){
+            if(tile is DefinitionTile definitionTile){
+                if(
+                    definitionTile.acrossWord == null &&
+                    (definitionTile.definitionTileLayout == DefinitionTileLayout.Across || definitionTile.definitionTileLayout == DefinitionTileLayout.DownAndAcross) &&
+                    definitionTile.tilesReachedByAcrossDefinition.Count > maxWordLenght
+                ){
+                    definitionTileToReturn = definitionTile;
+                    maxWordLenght = definitionTile.tilesReachedByAcrossDefinition.Count;
+                }
+            }
+        }
+
+
+        return definitionTileToReturn;
+    }
+
+    public DefinitionTile FindDefinitionTileWithLongestDownNullWord(){
+        DefinitionTile definitionTileToReturn = null;
+        int maxWordLenght = 0;
+
+        foreach (var tile in tiles){
+            if(tile is DefinitionTile definitionTile){
+                if(
+                    definitionTile.downWord == null &&
+                    (definitionTile.definitionTileLayout == DefinitionTileLayout.Down || definitionTile.definitionTileLayout == DefinitionTileLayout.DownAndAcross) &&
+                    definitionTile.tilesReachedByDownDefinition.Count > maxWordLenght
+                ){
+                    definitionTileToReturn = definitionTile;
+                    maxWordLenght = definitionTile.tilesReachedByDownDefinition.Count;
+                }
+            }
+        }
+
+
+        return definitionTileToReturn;
+    }
+
 
     
     void UpdateTilesReachedByDefinition(int row, int column){
@@ -124,6 +175,10 @@ public class Grid{
         return true;
 
 
+    }
+
+    bool IsDefinitionTilesLayoutValid(){
+        return true;
     }
 
     public List<Tile> GetTilesReachedByAcrossDefinitionTile(DefinitionTile definitionTile){

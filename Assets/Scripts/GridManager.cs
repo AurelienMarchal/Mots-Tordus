@@ -31,8 +31,23 @@ public class GridManager : MonoBehaviour
             tileManagerHovered_ = value;
             if(tileManagerHovered != null){
                 if(tileManagerHovered.tile is DefinitionTile definitionTile){
-                    HighlightTiles(grid.GetTilesReachedByDownDefinitionTile(definitionTile));
-                    HighlightTiles(grid.GetTilesReachedByAcrossDefinitionTile(definitionTile));
+                    switch(definitionTile.definitionTileLayout){
+                        case DefinitionTileLayout.Across:
+                            HighlightTiles(definitionTile.tilesReachedByAcrossDefinition);
+                            break;
+
+                        case DefinitionTileLayout.Down:
+                            HighlightTiles(definitionTile.tilesReachedByDownDefinition);
+                            break;
+
+                        case DefinitionTileLayout.DownAndAcross:
+                            HighlightTiles(definitionTile.tilesReachedByAcrossDefinition);
+                            HighlightTiles(definitionTile.tilesReachedByDownDefinition);
+                            break;
+
+                        default: break;
+
+                    }
                 }
             }
         }
@@ -52,9 +67,21 @@ public class GridManager : MonoBehaviour
         
     }
 
+    // TODO : Optimize by organizing tileManagers by tileCoords
+    TileManager FindTileManageryTile(Tile tile){
+        
+        foreach (var tileManager in tileManagers){
+            if(tileManager.tile == tile){
+                return tileManager;
+            }
+        }
+
+        return null;
+    }
+
     void UpdateAccordingToGrid(){
         
-        Debug.Log("UpdateAccordingToGrid");
+        //Debug.Log("UpdateAccordingToGrid");
         
         for (int i = 0; i < grid.width; i++){
             for (int j = 0; j < grid.height; j++){
@@ -64,20 +91,17 @@ public class GridManager : MonoBehaviour
                     continue;
                 }
 
-                var tilePrefabInstance = Instantiate(tilePrefab, transform);
-                var tileManager = tilePrefabInstance.GetComponent<TileManager>();
-                if(tileManager != null){
+                TileManager tileManager = FindTileManageryTile(tile);
 
-                    tileManager.tile = tile;
+                if(tileManager == null){
+                    var tilePrefabInstance = Instantiate(tilePrefab, transform);
+                    tileManager = tilePrefabInstance.GetComponent<TileManager>();
                     tileManagers.Add(tileManager);
-                    tileManager.transform.localPosition = new Vector3(-i * tileWidth, 0, j*tileHeight);
                 }
 
-                else{
-                    Destroy(tileManager);
-                }
+                tileManager.transform.localPosition = new Vector3(-i * tileWidth, 0, j*tileHeight);
+                tileManager.tile = tile;
                 
-
             }
         }
     }

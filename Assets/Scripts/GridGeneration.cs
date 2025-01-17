@@ -15,8 +15,6 @@ public class GridGeneration : MonoBehaviour
 
     Grid grid;
     
-    
-    
     // Start is called before the first frame update
     void Start(){
         grid = new Grid(9, 11, new List<Obstacle>{new Obstacle(7, 9, 2, 2)});
@@ -46,14 +44,13 @@ public class GridGeneration : MonoBehaviour
         grid.SetTile(new DefinitionTile(0, 10, acrossWordStartsOneTileLower : false, downWordStartsOneTileRight: false));
         grid.SetTile(new DefinitionTile(4, 10, acrossWordStartsOneTileLower : false, downWordStartsOneTileRight: false));
 
-
+        grid.UpdateTilesReachedByDefinition();
 
         gridManager.grid = grid;
     }
 
     // Update is called once per frame
-    void Update()
-    {
+    void Update(){
         
     }
 }
