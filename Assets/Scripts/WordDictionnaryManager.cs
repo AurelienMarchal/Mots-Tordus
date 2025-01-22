@@ -20,7 +20,7 @@ public class WordDictionnaryManager : MonoBehaviour
 
     string wordDictionnaryByWordLenghtFilePath;
 
-    WordDictionnary wordDictionnary;
+    public WordDictionnary wordDictionnary {get; private set;}
 
     [SerializeField]
     string wordSearch;

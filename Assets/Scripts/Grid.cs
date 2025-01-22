@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 
@@ -113,23 +114,58 @@ public class Grid{
     }
 
     public void UpdateTilesReachedByDefinition(){
+        //Loop through def tile list
         foreach (var tile in tiles){
             if(tile is DefinitionTile definitionTile){
-                definitionTile.tilesReachedByAcrossDefinition = GetTilesReachedByAcrossDefinitionTile(definitionTile);
                 definitionTile.tilesReachedByDownDefinition = GetTilesReachedByDownDefinitionTile(definitionTile);
+                definitionTile.tilesReachedByAcrossDefinition = GetTilesReachedByAcrossDefinitionTile(definitionTile);
+                /*
+                switch(definitionTile.definitionTileLayout){
+                    case DefinitionTileLayout.DownAndAcross:
+                        Debug.Log($"{definitionTile} is DownAndAcross");
+                        break;
+
+                    case DefinitionTileLayout.Down:
+                        Debug.Log($"{definitionTile} is Down");
+                        break;
+
+                    case DefinitionTileLayout.Across:
+                        Debug.Log($"{definitionTile} is Across");
+                        break;
+                    
+                }
+                */
             }
         }
     }
 
-    public DefinitionTile FindDefinitionTileWithLongestAcrossNullWord(){
+    public DefinitionTile FindDefinitionTileWithLongestDownWordEntryMissing(){
         DefinitionTile definitionTileToReturn = null;
         int maxWordLenght = 0;
 
         foreach (var tile in tiles){
             if(tile is DefinitionTile definitionTile){
                 if(
-                    definitionTile.acrossWord == null &&
-                    (definitionTile.definitionTileLayout == DefinitionTileLayout.Across || definitionTile.definitionTileLayout == DefinitionTileLayout.DownAndAcross) &&
+                    definitionTile.finalDownWordEntryIsMissing &&
+                    definitionTile.tilesReachedByDownDefinition.Count > maxWordLenght
+                ){
+                    definitionTileToReturn = definitionTile;
+                    maxWordLenght = definitionTile.tilesReachedByDownDefinition.Count;
+                }
+            }
+        }
+
+        return definitionTileToReturn;
+    }
+
+    public DefinitionTile FindDefinitionTileWithLongestAcrossWordEntryMissing(){
+        DefinitionTile definitionTileToReturn = null;
+        int maxWordLenght = 0;
+
+        foreach (var tile in tiles){
+            if(tile is DefinitionTile definitionTile){
+                if(
+                    definitionTile.finalAcrossWordEntryIsMissing &&
                     definitionTile.tilesReachedByAcrossDefinition.Count > maxWordLenght
                 ){
                     definitionTileToReturn = definitionTile;
@@ -142,19 +178,87 @@ public class Grid{
         return definitionTileToReturn;
     }
 
-    public DefinitionTile FindDefinitionTileWithLongestDownNullWord(){
-        DefinitionTile definitionTileToReturn = null;
-        int maxWordLenght = 0;
 
+    public bool UpdatePossibleWordEntries(WordDictionnary wordDictionnary){
+
+        var atLeastOneTileUpdated = false;
+        //Loop through def tile list
         foreach (var tile in tiles){
             if(tile is DefinitionTile definitionTile){
-                if(
-                    definitionTile.downWord == null &&
-                    (definitionTile.definitionTileLayout == DefinitionTileLayout.Down || definitionTile.definitionTileLayout == DefinitionTileLayout.DownAndAcross) &&
-                    definitionTile.tilesReachedByDownDefinition.Count > maxWordLenght
-                ){
-                    definitionTileToReturn = definitionTile;
-                    maxWordLenght = definitionTile.tilesReachedByDownDefinition.Count;
+                if(definitionTile.finalDownWordEntryIsMissing && definitionTile.crossesAtLeastOneWordDown){
+                    atLeastOneTileUpdated = true;
+                    if(definitionTile.possibleDownWordEntries == null){
+                        var results = wordDictionnary.SearchWord(definitionTile.downWordSearch, out int iterations);
+                        Debug.Log($"Initializing {definitionTile} possibleDownWordEntries with [{definitionTile.downWordSearch}], {results.Count} found in {iterations} iterations");
+                        definitionTile.InitializePossibleDownWordEntries(results);
+                    }
+                    else{
+                        definitionTile.UpdatePossibleDownWordEntries();
+                    }
+                }
+
+                if(definitionTile.finalAcrossWordEntryIsMissing && definitionTile.crossesAtLeastOneWordAcross){
+                    atLeastOneTileUpdated = true;
+                    if(definitionTile.possibleAcrossWordEntries == null){
+                        var results = wordDictionnary.SearchWord(definitionTile.acrossWordSearch, out int iterations);
+                        Debug.Log($"Initializing {definitionTile} possibleAcrossWordEntries with [{definitionTile.acrossWordSearch}], {results.Count} found in {iterations} iterations");
+                        definitionTile.InitializePossibleAcrossWordEntries(results);
+                    }
+                    else{
+                        definitionTile.UpdatePossibleAcrossWordEntries();
+                    }
+                }
+                
+            }
+        }
+
+        return atLeastOneTileUpdated;
+    }
+    
+
+    public bool AtLeastOneDefinitionTileHasNoPossibleWordEntry(){
+        //Loop through def tile list
+        foreach (var tile in tiles){
+            if(tile is DefinitionTile definitionTile){
+                if( definitionTile.finalDownWordEntryIsMissing && 
+                    definitionTile.possibleDownWordEntries != null && 
+                    definitionTile.possibleDownWordEntries.Count == 0){
+                        return true;
+                }
+
+                if( definitionTile.finalAcrossWordEntryIsMissing && 
+                    definitionTile.possibleAcrossWordEntries != null && 
+                    definitionTile.possibleAcrossWordEntries.Count == 0){
+                        return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public DefinitionTile GetDefinitionTileWithTheLeastPossibleWordEntry(out bool isDownDefinition){
+        //Loop through def tile list
+        DefinitionTile definitionTileToReturn = null;
+        int minPossibleWordEntry = int.MaxValue;
+        isDownDefinition = true;
+        foreach (var tile in tiles){
+            if(tile is DefinitionTile definitionTile){
+                if( definitionTile.finalDownWordEntryIsMissing && 
+                    definitionTile.possibleDownWordEntries != null &&
+                    definitionTile.possibleDownWordEntries.Count < minPossibleWordEntry){
+                        minPossibleWordEntry = definitionTile.possibleDownWordEntries.Count;
+                        definitionTileToReturn = definitionTile;
+                        isDownDefinition = true;
+                }
+
+                if( definitionTile.finalAcrossWordEntryIsMissing && 
+                    definitionTile.possibleAcrossWordEntries != null &&
+                    definitionTile.possibleAcrossWordEntries.Count < minPossibleWordEntry){
+                        minPossibleWordEntry = definitionTile.possibleAcrossWordEntries.Count;
+                        definitionTileToReturn = definitionTile;
+                        isDownDefinition = false;
+                    
                 }
             }
         }
@@ -162,8 +266,56 @@ public class Grid{
         return definitionTileToReturn;
     }
 
+    public bool SetFinalDownDefinition(DefinitionTile definitionTile, WordEntry wordEntry){
+        if(definitionTile == null){
+            return false;
+        }
 
-    
+        if(!definitionTile.finalDownWordEntryIsMissing){
+            return false;
+        }
+
+        if(!definitionTile.CanWordFitDown(wordEntry.wordWithoutSpecialChars)){
+            return false;
+        }
+
+        definitionTile.finalDownWordEntry = wordEntry;
+
+        for (int i = 0; i < definitionTile.tilesReachedByDownDefinition.Count; i++){
+            var tile = definitionTile.tilesReachedByDownDefinition[i];
+            if(tile is VoidTile voidTile){
+                SetTile(new LetterTile(voidTile.x, voidTile.y, wordEntry.wordWithoutSpecialChars[i]));
+            }
+        }
+
+        return true;
+    }
+
+    public bool SetFinalAcrossDefinition(DefinitionTile definitionTile, WordEntry wordEntry){
+        if(definitionTile == null){
+            return false;
+        }
+
+        if(!definitionTile.finalAcrossWordEntryIsMissing){
+            return false;
+        }
+
+        if(!definitionTile.CanWordFitAcross(wordEntry.wordWithoutSpecialChars)){
+            return false;
+        }
+
+        definitionTile.finalAcrossWordEntry = wordEntry;
+
+        for (int i = 0; i < definitionTile.tilesReachedByAcrossDefinition.Count; i++){
+            var tile = definitionTile.tilesReachedByAcrossDefinition[i];
+            if(tile is VoidTile voidTile){
+                SetTile(new LetterTile(voidTile.x, voidTile.y, wordEntry.wordWithoutSpecialChars[i]));
+            }
+        }
+
+        return true;
+    }
+
     void UpdateTilesReachedByDefinition(int row, int column){
 
     }

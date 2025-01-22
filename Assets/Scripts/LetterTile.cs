@@ -2,6 +2,13 @@
 
 public class LetterTile : Tile
 {
-    public LetterTile(int x, int y) : base(x, y){
+
+    public char letter{ get; private set; }
+
+
+
+
+    public LetterTile(int x, int y, char letter) : base(x, y){
+        this.letter = letter;
     }
 }

@@ -169,8 +169,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gridManager: {fileID: 624581002}
+  wordDictionnaryManager: {fileID: 1744606613}
   width: 9
   height: 10
+  seed: 1
 --- !u!114 &624581002
 MonoBehaviour:
   m_ObjectHideFlags: 0
