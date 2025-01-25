@@ -33,10 +33,10 @@ public class TileManager : MonoBehaviour
     GameObject letterParentGO;
 
     [SerializeField]
-    TextMeshProUGUI downDefTextMeshProUGUI;
+    TextMeshProUGUI firstDefTextMeshProUGUI;
 
     [SerializeField]
-    TextMeshProUGUI acrossDefTextMeshProUGUI;
+    TextMeshProUGUI secondDefTextMeshProUGUI;
 
     [SerializeField]
     TextMeshProUGUI letterTextMeshProUGUI;
@@ -82,16 +82,16 @@ public class TileManager : MonoBehaviour
             case DefinitionTile definitionTile:
                 letterParentGO.SetActive(false);
                 definitionParentGO.SetActive(true);
-                downDefTextMeshProUGUI.gameObject.SetActive(
-                    definitionTile.definitionTileLayout == DefinitionTileLayout.Down || 
-                    definitionTile.definitionTileLayout == DefinitionTileLayout.DownAndAcross
+                firstDefTextMeshProUGUI.gameObject.SetActive(
+                    definitionTile.definitionTileLayout == DefinitionTileLayout.FirstWordOnly || 
+                    definitionTile.definitionTileLayout == DefinitionTileLayout.FirstAndSecondWord
                 );
-                acrossDefTextMeshProUGUI.gameObject.SetActive(
-                    definitionTile.definitionTileLayout == DefinitionTileLayout.Across || 
-                    definitionTile.definitionTileLayout == DefinitionTileLayout.DownAndAcross
+                secondDefTextMeshProUGUI.gameObject.SetActive(
+                    definitionTile.definitionTileLayout == DefinitionTileLayout.SecondWordOnly || 
+                    definitionTile.definitionTileLayout == DefinitionTileLayout.FirstAndSecondWord
                 );
-                downDefTextMeshProUGUI.text = definitionTile.downWordSearch;
-                acrossDefTextMeshProUGUI.text = definitionTile.acrossWordSearch;
+                firstDefTextMeshProUGUI.text = definitionTile.firstWordSearch;
+                secondDefTextMeshProUGUI.text = definitionTile.secondWordSearch;
                 break;
 
             case LetterTile letterTile:

@@ -81,7 +81,7 @@ public class Grid{
     void GenerateTopAndRightDefinitionTiles(){
         foreach (var tile in tiles){
             if(IsTileAtTopLeftCorner(tile)){
-                SetTile(new DefinitionTile(tile.x, tile.y, acrossWordStartsOneTileLower:true, downWordStartsOneTileRight:true));
+                SetTile(new DefinitionTile(tile.x, tile.y, firstWordGoesDown:true, secondWordGoesAcross:true));
             }
         }
 
@@ -117,40 +117,24 @@ public class Grid{
         //Loop through def tile list
         foreach (var tile in tiles){
             if(tile is DefinitionTile definitionTile){
-                definitionTile.tilesReachedByDownDefinition = GetTilesReachedByDownDefinitionTile(definitionTile);
-                definitionTile.tilesReachedByAcrossDefinition = GetTilesReachedByAcrossDefinitionTile(definitionTile);
-                /*
-                switch(definitionTile.definitionTileLayout){
-                    case DefinitionTileLayout.DownAndAcross:
-                        Debug.Log($"{definitionTile} is DownAndAcross");
-                        break;
-
-                    case DefinitionTileLayout.Down:
-                        Debug.Log($"{definitionTile} is Down");
-                        break;
-
-                    case DefinitionTileLayout.Across:
-                        Debug.Log($"{definitionTile} is Across");
-                        break;
-                    
-                }
-                */
+                definitionTile.tilesReachedByFirstDefinition = GetTilesReachedByFirstDefinition(definitionTile);
+                definitionTile.tilesReachedBySecondDefinition = GetTilesReachedBySecondDefinition(definitionTile);
             }
         }
     }
 
-    public DefinitionTile FindDefinitionTileWithLongestDownWordEntryMissing(){
+    public DefinitionTile FindDefinitionTileWithLongestFirstWordEntryMissing(){
         DefinitionTile definitionTileToReturn = null;
         int maxWordLenght = 0;
 
         foreach (var tile in tiles){
             if(tile is DefinitionTile definitionTile){
                 if(
-                    definitionTile.finalDownWordEntryIsMissing &&
-                    definitionTile.tilesReachedByDownDefinition.Count > maxWordLenght
+                    definitionTile.finalFirstWordEntryIsMissing &&
+                    definitionTile.tilesReachedByFirstDefinition.Count > maxWordLenght
                 ){
                     definitionTileToReturn = definitionTile;
-                    maxWordLenght = definitionTile.tilesReachedByDownDefinition.Count;
+                    maxWordLenght = definitionTile.tilesReachedByFirstDefinition.Count;
                 }
             }
         }
@@ -158,18 +142,18 @@ public class Grid{
         return definitionTileToReturn;
     }
 
-    public DefinitionTile FindDefinitionTileWithLongestAcrossWordEntryMissing(){
+    public DefinitionTile FindDefinitionTileWithLongestSecondWordEntryMissing(){
         DefinitionTile definitionTileToReturn = null;
         int maxWordLenght = 0;
 
         foreach (var tile in tiles){
             if(tile is DefinitionTile definitionTile){
                 if(
-                    definitionTile.finalAcrossWordEntryIsMissing &&
-                    definitionTile.tilesReachedByAcrossDefinition.Count > maxWordLenght
+                    definitionTile.finalSecondWordEntryIsMissing &&
+                    definitionTile.tilesReachedBySecondDefinition.Count > maxWordLenght
                 ){
                     definitionTileToReturn = definitionTile;
-                    maxWordLenght = definitionTile.tilesReachedByAcrossDefinition.Count;
+                    maxWordLenght = definitionTile.tilesReachedBySecondDefinition.Count;
                 }
             }
         }
@@ -185,27 +169,27 @@ public class Grid{
         //Loop through def tile list
         foreach (var tile in tiles){
             if(tile is DefinitionTile definitionTile){
-                if(definitionTile.finalDownWordEntryIsMissing && definitionTile.crossesAtLeastOneWordDown){
+                if(definitionTile.finalFirstWordEntryIsMissing && definitionTile.crossesAtLeastOneWordFirst){
                     atLeastOneTileUpdated = true;
-                    if(definitionTile.possibleDownWordEntries == null){
-                        var results = wordDictionnary.SearchWord(definitionTile.downWordSearch, out int iterations);
-                        Debug.Log($"Initializing {definitionTile} possibleDownWordEntries with [{definitionTile.downWordSearch}], {results.Count} found in {iterations} iterations");
-                        definitionTile.InitializePossibleDownWordEntries(results);
+                    if(definitionTile.possibleFirstWordEntries == null){
+                        var results = wordDictionnary.SearchWord(definitionTile.firstWordSearch, out int iterations);
+                        Debug.Log($"Initializing {definitionTile} possibleFirstWordEntries with [{definitionTile.firstWordSearch}], {results.Count} found in {iterations} iterations");
+                        definitionTile.InitializePossibleFirstWordEntries(results);
                     }
                     else{
-                        definitionTile.UpdatePossibleDownWordEntries();
+                        definitionTile.UpdatePossibleFirstWordEntries();
                     }
                 }
 
-                if(definitionTile.finalAcrossWordEntryIsMissing && definitionTile.crossesAtLeastOneWordAcross){
+                if(definitionTile.finalSecondWordEntryIsMissing && definitionTile.crossesAtLeastOneWordSecond){
                     atLeastOneTileUpdated = true;
-                    if(definitionTile.possibleAcrossWordEntries == null){
-                        var results = wordDictionnary.SearchWord(definitionTile.acrossWordSearch, out int iterations);
-                        Debug.Log($"Initializing {definitionTile} possibleAcrossWordEntries with [{definitionTile.acrossWordSearch}], {results.Count} found in {iterations} iterations");
-                        definitionTile.InitializePossibleAcrossWordEntries(results);
+                    if(definitionTile.possibleSecondWordEntries == null){
+                        var results = wordDictionnary.SearchWord(definitionTile.secondWordSearch, out int iterations);
+                        Debug.Log($"Initializing {definitionTile} possibleSecondWordEntries with [{definitionTile.secondWordSearch}], {results.Count} found in {iterations} iterations");
+                        definitionTile.InitializePossibleSecondWordEntries(results);
                     }
                     else{
-                        definitionTile.UpdatePossibleAcrossWordEntries();
+                        definitionTile.UpdatePossibleSecondWordEntries();
                     }
                 }
                 
@@ -220,15 +204,15 @@ public class Grid{
         //Loop through def tile list
         foreach (var tile in tiles){
             if(tile is DefinitionTile definitionTile){
-                if( definitionTile.finalDownWordEntryIsMissing && 
-                    definitionTile.possibleDownWordEntries != null && 
-                    definitionTile.possibleDownWordEntries.Count == 0){
+                if( definitionTile.finalFirstWordEntryIsMissing && 
+                    definitionTile.possibleFirstWordEntries != null && 
+                    definitionTile.possibleFirstWordEntries.Count == 0){
                         return true;
                 }
 
-                if( definitionTile.finalAcrossWordEntryIsMissing && 
-                    definitionTile.possibleAcrossWordEntries != null && 
-                    definitionTile.possibleAcrossWordEntries.Count == 0){
+                if( definitionTile.finalSecondWordEntryIsMissing && 
+                    definitionTile.possibleSecondWordEntries != null && 
+                    definitionTile.possibleSecondWordEntries.Count == 0){
                         return true;
                 }
             }
@@ -237,27 +221,27 @@ public class Grid{
         return false;
     }
 
-    public DefinitionTile GetDefinitionTileWithTheLeastPossibleWordEntry(out bool isDownDefinition){
+    public DefinitionTile GetDefinitionTileWithTheLeastPossibleWordEntry(out bool isFirstDefinition){
         //Loop through def tile list
         DefinitionTile definitionTileToReturn = null;
         int minPossibleWordEntry = int.MaxValue;
-        isDownDefinition = true;
+        isFirstDefinition = true;
         foreach (var tile in tiles){
             if(tile is DefinitionTile definitionTile){
-                if( definitionTile.finalDownWordEntryIsMissing && 
-                    definitionTile.possibleDownWordEntries != null &&
-                    definitionTile.possibleDownWordEntries.Count < minPossibleWordEntry){
-                        minPossibleWordEntry = definitionTile.possibleDownWordEntries.Count;
+                if( definitionTile.finalFirstWordEntryIsMissing && 
+                    definitionTile.possibleFirstWordEntries != null &&
+                    definitionTile.possibleFirstWordEntries.Count < minPossibleWordEntry){
+                        minPossibleWordEntry = definitionTile.possibleFirstWordEntries.Count;
                         definitionTileToReturn = definitionTile;
-                        isDownDefinition = true;
+                        isFirstDefinition = true;
                 }
 
-                if( definitionTile.finalAcrossWordEntryIsMissing && 
-                    definitionTile.possibleAcrossWordEntries != null &&
-                    definitionTile.possibleAcrossWordEntries.Count < minPossibleWordEntry){
-                        minPossibleWordEntry = definitionTile.possibleAcrossWordEntries.Count;
+                if( definitionTile.finalSecondWordEntryIsMissing && 
+                    definitionTile.possibleSecondWordEntries != null &&
+                    definitionTile.possibleSecondWordEntries.Count < minPossibleWordEntry){
+                        minPossibleWordEntry = definitionTile.possibleSecondWordEntries.Count;
                         definitionTileToReturn = definitionTile;
-                        isDownDefinition = false;
+                        isFirstDefinition = false;
                     
                 }
             }
@@ -266,23 +250,23 @@ public class Grid{
         return definitionTileToReturn;
     }
 
-    public bool SetFinalDownDefinition(DefinitionTile definitionTile, WordEntry wordEntry){
+    public bool SetFinalFirstDefinition(DefinitionTile definitionTile, WordEntry wordEntry){
         if(definitionTile == null){
             return false;
         }
 
-        if(!definitionTile.finalDownWordEntryIsMissing){
+        if(!definitionTile.finalFirstWordEntryIsMissing){
             return false;
         }
 
-        if(!definitionTile.CanWordFitDown(wordEntry.wordWithoutSpecialChars)){
+        if(!definitionTile.CanWordFitInFirstWordSearch(wordEntry.wordWithoutSpecialChars)){
             return false;
         }
 
-        definitionTile.finalDownWordEntry = wordEntry;
+        definitionTile.finalFirstWordEntry = wordEntry;
 
-        for (int i = 0; i < definitionTile.tilesReachedByDownDefinition.Count; i++){
-            var tile = definitionTile.tilesReachedByDownDefinition[i];
+        for (int i = 0; i < definitionTile.tilesReachedByFirstDefinition.Count; i++){
+            var tile = definitionTile.tilesReachedByFirstDefinition[i];
             if(tile is VoidTile voidTile){
                 SetTile(new LetterTile(voidTile.x, voidTile.y, wordEntry.wordWithoutSpecialChars[i]));
             }
@@ -291,23 +275,23 @@ public class Grid{
         return true;
     }
 
-    public bool SetFinalAcrossDefinition(DefinitionTile definitionTile, WordEntry wordEntry){
+    public bool SetFinalSecondDefinition(DefinitionTile definitionTile, WordEntry wordEntry){
         if(definitionTile == null){
             return false;
         }
 
-        if(!definitionTile.finalAcrossWordEntryIsMissing){
+        if(!definitionTile.finalSecondWordEntryIsMissing){
             return false;
         }
 
-        if(!definitionTile.CanWordFitAcross(wordEntry.wordWithoutSpecialChars)){
+        if(!definitionTile.CanWordFitInSecondWordSearch(wordEntry.wordWithoutSpecialChars)){
             return false;
         }
 
-        definitionTile.finalAcrossWordEntry = wordEntry;
+        definitionTile.finalSecondWordEntry = wordEntry;
 
-        for (int i = 0; i < definitionTile.tilesReachedByAcrossDefinition.Count; i++){
-            var tile = definitionTile.tilesReachedByAcrossDefinition[i];
+        for (int i = 0; i < definitionTile.tilesReachedBySecondDefinition.Count; i++){
+            var tile = definitionTile.tilesReachedBySecondDefinition[i];
             if(tile is VoidTile voidTile){
                 SetTile(new LetterTile(voidTile.x, voidTile.y, wordEntry.wordWithoutSpecialChars[i]));
             }
@@ -332,27 +316,35 @@ public class Grid{
         return true;
     }
 
-    public List<Tile> GetTilesReachedByAcrossDefinitionTile(DefinitionTile definitionTile){
+    public List<Tile> GetTilesReachedByFirstDefinition(DefinitionTile definitionTile){
+        
+
         var tiles = new List<Tile>();
 
-        var tileReached = GetTileAt(definitionTile.x + (!definitionTile.acrossWordStartsOneTileLower ? 1 : 0), definitionTile.y + (definitionTile.acrossWordStartsOneTileLower ? 1 : 0));
+        var dX = definitionTile.firstWordGoesDown ? 0 : 1;
+        var dY = definitionTile.firstWordGoesDown ? 1 : 0;
+
+        var tileReached = GetTileAt(definitionTile.x + 1, definitionTile.y);
 
         while(tileReached != null && !tileReached.isObstacle && !tileReached.isDefinition){
             tiles.Add(tileReached);
-            tileReached = GetTileAt(tileReached.x + 1, tileReached.y);
+            tileReached = GetTileAt(tileReached.x + dX, tileReached.y + dY);
         }
 
         return tiles;
     }
 
-    public List<Tile> GetTilesReachedByDownDefinitionTile(DefinitionTile definitionTile){
+    public List<Tile> GetTilesReachedBySecondDefinition(DefinitionTile definitionTile){
         var tiles = new List<Tile>();
 
-        var tileReached = GetTileAt(definitionTile.x + (definitionTile.downWordStartsOneTileRight ? 1 : 0), definitionTile.y + (!definitionTile.downWordStartsOneTileRight ? 1 : 0));
+        var dX = definitionTile.secondWordGoesAcross ? 1 : 0;
+        var dY = definitionTile.secondWordGoesAcross ? 0 : 1;
 
+        var tileReached = GetTileAt(definitionTile.x, definitionTile.y + 1);
+        
         while(tileReached != null && !tileReached.isObstacle && !tileReached.isDefinition){
             tiles.Add(tileReached);
-            tileReached = GetTileAt(tileReached.x, tileReached.y + 1);
+            tileReached = GetTileAt(tileReached.x + dX, tileReached.y + dY);
         }
 
         return tiles;

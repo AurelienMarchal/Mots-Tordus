@@ -28,30 +28,31 @@ public class GridGeneration : MonoBehaviour
 
         grid = new Grid(9, 11, new List<Obstacle>{new Obstacle(7, 9, 2, 2)});
 
-        grid.SetTile(new DefinitionTile(0, 0, acrossWordStartsOneTileLower : true, downWordStartsOneTileRight: true));
+        grid.SetTile(new DefinitionTile(0, 0, firstWordGoesDown: true, secondWordGoesAcross: true));
 
-        grid.SetTile(new DefinitionTile(2, 0, acrossWordStartsOneTileLower : false, downWordStartsOneTileRight: true));
-        grid.SetTile(new DefinitionTile(4, 0, acrossWordStartsOneTileLower : false, downWordStartsOneTileRight: true));
-        grid.SetTile(new DefinitionTile(6, 0, acrossWordStartsOneTileLower : false, downWordStartsOneTileRight: true));
+        grid.SetTile(new DefinitionTile(2, 0, firstWordGoesDown : true, secondWordGoesAcross: false));
+        grid.SetTile(new DefinitionTile(4, 0, firstWordGoesDown : true, secondWordGoesAcross: false));
+        grid.SetTile(new DefinitionTile(6, 0, firstWordGoesDown : true, secondWordGoesAcross: false));
+        grid.SetTile(new DefinitionTile(8, 0, firstWordGoesDown : false, secondWordGoesAcross: false));
 
-        grid.SetTile(new DefinitionTile(0, 2, acrossWordStartsOneTileLower : true, downWordStartsOneTileRight: false));
-        grid.SetTile(new DefinitionTile(0, 4, acrossWordStartsOneTileLower : true, downWordStartsOneTileRight: false));
-        grid.SetTile(new DefinitionTile(0, 6, acrossWordStartsOneTileLower : true, downWordStartsOneTileRight: false));
-        grid.SetTile(new DefinitionTile(0, 8, acrossWordStartsOneTileLower : true, downWordStartsOneTileRight: false));
+        grid.SetTile(new DefinitionTile(0, 2, firstWordGoesDown : false, secondWordGoesAcross: true));
+        grid.SetTile(new DefinitionTile(0, 4, firstWordGoesDown : false, secondWordGoesAcross: true));
+        grid.SetTile(new DefinitionTile(0, 6, firstWordGoesDown : false, secondWordGoesAcross: true));
+        grid.SetTile(new DefinitionTile(0, 8, firstWordGoesDown : false, secondWordGoesAcross: true));
+        grid.SetTile(new DefinitionTile(0, 10, firstWordGoesDown : false, secondWordGoesAcross: false));
 
-        grid.SetTile(new DefinitionTile(8, 0, acrossWordStartsOneTileLower : false, downWordStartsOneTileRight: false));
-        grid.SetTile(new DefinitionTile(4, 1, acrossWordStartsOneTileLower : false, downWordStartsOneTileRight: false));
-        grid.SetTile(new DefinitionTile(3, 3, acrossWordStartsOneTileLower : false, downWordStartsOneTileRight: false));
-        grid.SetTile(new DefinitionTile(8, 3, acrossWordStartsOneTileLower : false, downWordStartsOneTileRight: false));
-        grid.SetTile(new DefinitionTile(2, 4, acrossWordStartsOneTileLower : false, downWordStartsOneTileRight: false));
-        grid.SetTile(new DefinitionTile(5, 5, acrossWordStartsOneTileLower : false, downWordStartsOneTileRight: false));
-        grid.SetTile(new DefinitionTile(7, 5, acrossWordStartsOneTileLower : false, downWordStartsOneTileRight: false));
-        grid.SetTile(new DefinitionTile(4, 6, acrossWordStartsOneTileLower : false, downWordStartsOneTileRight: false));
-        grid.SetTile(new DefinitionTile(2, 7, acrossWordStartsOneTileLower : false, downWordStartsOneTileRight: false));
-        grid.SetTile(new DefinitionTile(6, 7, acrossWordStartsOneTileLower : false, downWordStartsOneTileRight: false));
-        grid.SetTile(new DefinitionTile(3, 8, acrossWordStartsOneTileLower : false, downWordStartsOneTileRight: false));
-        grid.SetTile(new DefinitionTile(0, 10, acrossWordStartsOneTileLower : false, downWordStartsOneTileRight: false));
-        grid.SetTile(new DefinitionTile(4, 10, acrossWordStartsOneTileLower : false, downWordStartsOneTileRight: false));
+        
+        grid.SetTile(new DefinitionTile(4, 1, firstWordGoesDown : false, secondWordGoesAcross: false));
+        grid.SetTile(new DefinitionTile(3, 3, firstWordGoesDown : false, secondWordGoesAcross: false));
+        grid.SetTile(new DefinitionTile(8, 3, firstWordGoesDown : false, secondWordGoesAcross: false));
+        grid.SetTile(new DefinitionTile(1, 4, firstWordGoesDown : false, secondWordGoesAcross: false));
+        grid.SetTile(new DefinitionTile(5, 5, firstWordGoesDown : false, secondWordGoesAcross: false));
+        grid.SetTile(new DefinitionTile(7, 5, firstWordGoesDown : false, secondWordGoesAcross: false));
+        grid.SetTile(new DefinitionTile(4, 6, firstWordGoesDown : false, secondWordGoesAcross: false));
+        grid.SetTile(new DefinitionTile(2, 7, firstWordGoesDown : false, secondWordGoesAcross: false));
+        grid.SetTile(new DefinitionTile(6, 7, firstWordGoesDown : false, secondWordGoesAcross: false));
+        grid.SetTile(new DefinitionTile(3, 8, firstWordGoesDown : false, secondWordGoesAcross: false));
+        grid.SetTile(new DefinitionTile(4, 10, firstWordGoesDown : false, secondWordGoesAcross: false));
 
         grid.UpdateTilesReachedByDefinition();
 
@@ -71,18 +72,18 @@ public class GridGeneration : MonoBehaviour
     }
 
     bool SetFirstWord(Grid grid){
-        DefinitionTile definitionTile = grid.FindDefinitionTileWithLongestDownWordEntryMissing();
+        DefinitionTile definitionTile = grid.FindDefinitionTileWithLongestFirstWordEntryMissing();
         if(definitionTile == null){
             return false;
         }
 
-        if(!wordDictionnaryManager.wordDictionnary.wordDictionnaryByWordLenght.ContainsKey(definitionTile.downWordSearch.Length)){
+        if(!wordDictionnaryManager.wordDictionnary.wordDictionnaryByWordLenght.ContainsKey(definitionTile.firstWordSearch.Length)){
             return false;
         }
 
-        var randomIndex = Random.Range(0, wordDictionnaryManager.wordDictionnary.wordDictionnaryByWordLenght[definitionTile.downWordSearch.Length].Count);
-        var wordEntry = wordDictionnaryManager.wordDictionnary.wordDictionnaryByWordLenght[definitionTile.downWordSearch.Length][randomIndex];
-        return grid.SetFinalDownDefinition(definitionTile, wordEntry);
+        var randomIndex = Random.Range(0, wordDictionnaryManager.wordDictionnary.wordDictionnaryByWordLenght[definitionTile.firstWordSearch.Length].Count);
+        var wordEntry = wordDictionnaryManager.wordDictionnary.wordDictionnaryByWordLenght[definitionTile.firstWordSearch.Length][randomIndex];
+        return grid.SetFinalFirstDefinition(definitionTile, wordEntry);
 
     }
 
@@ -104,18 +105,18 @@ public class GridGeneration : MonoBehaviour
         }
 
         if(isDownDefinition){
-            var randomIndex = Random.Range(0, definitionTile.possibleDownWordEntries.Count);
-            var wordEntry = definitionTile.possibleDownWordEntries[randomIndex];
-            Debug.Log($"Word chosen for down def of {definitionTile} is {wordEntry.wordWithoutDiacritics}");
-            return grid.SetFinalDownDefinition(definitionTile, wordEntry);
+            var randomIndex = Random.Range(0, definitionTile.possibleFirstWordEntries.Count);
+            var wordEntry = definitionTile.possibleFirstWordEntries[randomIndex];
+            Debug.Log($"Word chosen for first def of {definitionTile} is {wordEntry.wordWithoutDiacritics}");
+            return grid.SetFinalFirstDefinition(definitionTile, wordEntry);
             
         }
 
         else{
-            var randomIndex = Random.Range(0, definitionTile.possibleAcrossWordEntries.Count);
-            var wordEntry = definitionTile.possibleAcrossWordEntries[randomIndex];
-            Debug.Log($"Word chosen for across def of {definitionTile} is {wordEntry.wordWithoutDiacritics}");
-            return grid.SetFinalAcrossDefinition(definitionTile, wordEntry);
+            var randomIndex = Random.Range(0, definitionTile.possibleSecondWordEntries.Count);
+            var wordEntry = definitionTile.possibleSecondWordEntries[randomIndex];
+            Debug.Log($"Word chosen for second def of {definitionTile} is {wordEntry.wordWithoutDiacritics}");
+            return grid.SetFinalSecondDefinition(definitionTile, wordEntry);
             
         }
     }

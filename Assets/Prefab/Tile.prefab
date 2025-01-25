@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 5170029695128865211}
   - component: {fileID: 3716987027950072403}
   m_Layer: 0
-  m_Name: TopDef
+  m_Name: FirstDefText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -280,7 +280,7 @@ GameObject:
   - component: {fileID: 1731335135557292181}
   - component: {fileID: 7954255159724701078}
   m_Layer: 0
-  m_Name: BottomDef
+  m_Name: SecondDefText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -782,8 +782,8 @@ MonoBehaviour:
   mainCanvas: {fileID: 2820477798137828417}
   definitionParentGO: {fileID: 1659822402656664340}
   letterParentGO: {fileID: 3187125661423375708}
-  downDefTextMeshProUGUI: {fileID: 7954255159724701078}
-  acrossDefTextMeshProUGUI: {fileID: 3716987027950072403}
+  firstDefTextMeshProUGUI: {fileID: 3716987027950072403}
+  secondDefTextMeshProUGUI: {fileID: 7954255159724701078}
   letterTextMeshProUGUI: {fileID: 7066339865874858518}
   _renderer: {fileID: 5739230206776971078}
   colorDefault: {r: 0.9843137, g: 0.7882353, b: 0.43529412, a: 1}

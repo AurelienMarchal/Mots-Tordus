@@ -31,17 +31,17 @@ public class GridManager : MonoBehaviour
             if(tileManagerHovered != null){
                 if(tileManagerHovered.tile is DefinitionTile definitionTile){
                     switch(definitionTile.definitionTileLayout){
-                        case DefinitionTileLayout.Across:
-                            HighlightTiles(definitionTile.tilesReachedByAcrossDefinition);
+                        case DefinitionTileLayout.FirstWordOnly:
+                            HighlightTiles(definitionTile.tilesReachedByFirstDefinition);
                             break;
 
-                        case DefinitionTileLayout.Down:
-                            HighlightTiles(definitionTile.tilesReachedByDownDefinition);
+                        case DefinitionTileLayout.SecondWordOnly:
+                            HighlightTiles(definitionTile.tilesReachedBySecondDefinition);
                             break;
 
-                        case DefinitionTileLayout.DownAndAcross:
-                            HighlightTiles(definitionTile.tilesReachedByAcrossDefinition);
-                            HighlightTiles(definitionTile.tilesReachedByDownDefinition);
+                        case DefinitionTileLayout.FirstAndSecondWord:
+                            HighlightTiles(definitionTile.tilesReachedByFirstDefinition);
+                            HighlightTiles(definitionTile.tilesReachedBySecondDefinition);
                             break;
 
                         default: break;

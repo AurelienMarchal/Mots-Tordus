@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 
 public enum DefinitionTileLayout{
-    Across, Down, DownAndAcross
+    FirstWordOnly, SecondWordOnly, FirstAndSecondWord
 }
 
 
@@ -13,47 +13,49 @@ public class DefinitionTile : Tile
 
     public DefinitionTileLayout definitionTileLayout {get; private set;}
 
-    public WordEntry finalDownWordEntry {get; set;}
+    public WordEntry finalFirstWordEntry {get; set;}
 
-    public WordEntry finalAcrossWordEntry {get; set;}
+    public WordEntry finalSecondWordEntry {get; set;}
 
-    public bool finalDownWordEntryIsMissing {get {
-        return (definitionTileLayout == DefinitionTileLayout.Down || definitionTileLayout == DefinitionTileLayout.DownAndAcross) && finalDownWordEntry == null;
+    public bool finalFirstWordEntryIsMissing {get {
+        return finalFirstWordEntry == null && 
+            (definitionTileLayout == DefinitionTileLayout.FirstWordOnly || definitionTileLayout == DefinitionTileLayout.FirstAndSecondWord);
     }}
 
-    public bool finalAcrossWordEntryIsMissing {get {
-        return (definitionTileLayout == DefinitionTileLayout.Across || definitionTileLayout == DefinitionTileLayout.DownAndAcross) && finalAcrossWordEntry == null;
+    public bool finalSecondWordEntryIsMissing {get {
+        return finalSecondWordEntry == null &&
+            (definitionTileLayout == DefinitionTileLayout.SecondWordOnly || definitionTileLayout == DefinitionTileLayout.FirstAndSecondWord);
     }}
 
-    public bool acrossWordStartsOneTileLower {get; private set;}
+    public bool firstWordGoesDown {get; private set;}
 
-    public bool downWordStartsOneTileRight {get; private set;}
+    public bool secondWordGoesAcross {get; private set;}
 
-    public string downWordSearch {get; set;}
+    public string firstWordSearch {get; set;}
 
-    public string acrossWordSearch {get; set;}
+    public string secondWordSearch {get; set;}
 
-    public bool crossesAtLeastOneWordDown {get; private set;}
+    public bool crossesAtLeastOneWordFirst {get; private set;}
 
-    public bool crossesAtLeastOneWordAcross {get; private set;}
+    public bool crossesAtLeastOneWordSecond {get; private set;}
 
-    public List<WordEntry> possibleDownWordEntries {get; private set;}
+    public List<WordEntry> possibleFirstWordEntries {get; private set;}
 
-    public List<WordEntry> possibleAcrossWordEntries {get; private set;}
+    public List<WordEntry> possibleSecondWordEntries {get; private set;}
 
-    private List<Tile> tilesReachedByDownDefinition_;
-    public List<Tile> tilesReachedByDownDefinition {
+    private List<Tile> tilesReachedByFirstDefinition_;
+    public List<Tile> tilesReachedByFirstDefinition {
         get{
-            return tilesReachedByDownDefinition_;
+            return tilesReachedByFirstDefinition_;
         } 
         set{
-            tilesReachedByDownDefinition_ = value;
+            tilesReachedByFirstDefinition_ = value;
             if(value != null && value.Count > 1){
-                if(tilesReachedByAcrossDefinition != null && tilesReachedByAcrossDefinition.Count > 1){
-                    definitionTileLayout = DefinitionTileLayout.DownAndAcross;
+                if(tilesReachedBySecondDefinition != null && tilesReachedBySecondDefinition.Count > 1){
+                    definitionTileLayout = DefinitionTileLayout.FirstAndSecondWord;
                 }
                 else{
-                    definitionTileLayout = DefinitionTileLayout.Down;
+                    definitionTileLayout = DefinitionTileLayout.FirstWordOnly;
                 }
             }
             UpdateWordSearch();
@@ -62,20 +64,20 @@ public class DefinitionTile : Tile
     }
 
 
-    private List<Tile> tilesReachedByAcrossDefinition_;
+    private List<Tile> tilesReachedBySecondDefinition_;
 
-    public List<Tile> tilesReachedByAcrossDefinition {
+    public List<Tile> tilesReachedBySecondDefinition {
         get {
-            return tilesReachedByAcrossDefinition_;
+            return tilesReachedBySecondDefinition_;
         }
         set {
-            tilesReachedByAcrossDefinition_ = value;
+            tilesReachedBySecondDefinition_ = value;
             if(value != null && value.Count > 1){
-                if(tilesReachedByDownDefinition != null && tilesReachedByDownDefinition.Count > 1){
-                    definitionTileLayout = DefinitionTileLayout.DownAndAcross;
+                if(tilesReachedByFirstDefinition != null && tilesReachedByFirstDefinition.Count > 1){
+                    definitionTileLayout = DefinitionTileLayout.FirstAndSecondWord;
                 }
                 else{
-                    definitionTileLayout = DefinitionTileLayout.Across;
+                    definitionTileLayout = DefinitionTileLayout.SecondWordOnly;
                 }
                 UpdateWordSearch();
             }
@@ -85,91 +87,117 @@ public class DefinitionTile : Tile
     public DefinitionTile(
         int x, 
         int y,
-        DefinitionTileLayout definitionTileLayout = DefinitionTileLayout.DownAndAcross, 
-        bool acrossWordStartsOneTileLower = false, 
-        bool downWordStartsOneTileRight = false
+        DefinitionTileLayout definitionTileLayout = DefinitionTileLayout.FirstAndSecondWord, 
+        bool secondWordGoesAcross = false, 
+        bool firstWordGoesDown = false
 
     ) : base(x, y, isDefinition:true){
         
         this.definitionTileLayout = definitionTileLayout;
-        this.acrossWordStartsOneTileLower = acrossWordStartsOneTileLower;
-        this.downWordStartsOneTileRight = downWordStartsOneTileRight;
-        tilesReachedByAcrossDefinition = null;
-        tilesReachedByDownDefinition = null;
-        possibleDownWordEntries = null;
-        possibleAcrossWordEntries = null;
-        crossesAtLeastOneWordAcross = false;
-        crossesAtLeastOneWordAcross = false;
+        this.secondWordGoesAcross = secondWordGoesAcross;
+        this.firstWordGoesDown = firstWordGoesDown;
+        tilesReachedBySecondDefinition = null;
+        tilesReachedByFirstDefinition = null;
+        possibleFirstWordEntries = null;
+        possibleSecondWordEntries = null;
+        crossesAtLeastOneWordFirst= false;
+        crossesAtLeastOneWordSecond = false;
     }
 
 
     public void UpdateWordSearch(){
-        if(finalDownWordEntry != null){
-            downWordSearch = finalDownWordEntry.wordWithoutSpecialChars;
+        if(finalFirstWordEntry != null){
+            firstWordSearch = finalFirstWordEntry.wordWithoutSpecialChars;
         }
         
-        else if(tilesReachedByDownDefinition != null){
-            crossesAtLeastOneWordDown = false;
-            StringBuilder stringBuilderDown = new StringBuilder();
-            foreach (var tile in tilesReachedByDownDefinition){
+        else if(tilesReachedByFirstDefinition != null){
+            crossesAtLeastOneWordFirst = false;
+            StringBuilder stringBuilderFirst = new StringBuilder();
+            foreach (var tile in tilesReachedByFirstDefinition){
                 switch (tile){
                     case LetterTile letterTile:
-                        stringBuilderDown.Append(letterTile.letter);
+                        stringBuilderFirst.Append(letterTile.letter);
 
-                        crossesAtLeastOneWordDown = true;
+                        crossesAtLeastOneWordFirst = true;
                         break;
 
                     default:
-                        stringBuilderDown.Append('*');
+                        stringBuilderFirst.Append('*');
                         break;
                 }
             }
 
-            downWordSearch = stringBuilderDown.ToString();
+            firstWordSearch = stringBuilderFirst.ToString();
         }
 
-        if(finalAcrossWordEntry != null){
-            acrossWordSearch = finalAcrossWordEntry.wordWithoutSpecialChars;
+        if(finalSecondWordEntry != null){
+            secondWordSearch = finalSecondWordEntry.wordWithoutSpecialChars;
         }
         
-        else if(tilesReachedByAcrossDefinition != null){
-            crossesAtLeastOneWordAcross = false;
+        else if(tilesReachedBySecondDefinition != null){
+            crossesAtLeastOneWordSecond = false;
         
-            StringBuilder stringBuilderAcross = new StringBuilder();
-            foreach (var tile in tilesReachedByAcrossDefinition){
+            StringBuilder stringBuilderSecond = new StringBuilder();
+            foreach (var tile in tilesReachedBySecondDefinition){
                 switch (tile){
                     case LetterTile letterTile:
-                        stringBuilderAcross.Append(letterTile.letter);
-                        crossesAtLeastOneWordAcross = true;
+                        stringBuilderSecond.Append(letterTile.letter);
+                        crossesAtLeastOneWordSecond = true;
                         break;
 
                     default:
-                        stringBuilderAcross.Append('*');
+                        stringBuilderSecond.Append('*');
                         break;
                 }
             }
 
-            acrossWordSearch = stringBuilderAcross.ToString();
+            secondWordSearch = stringBuilderSecond.ToString();
         }
     }
 
 
-    public bool CanWordFitAcross(string word){
+    public bool CanWordFitInFirstWordSearch(string word){
         if (word == null){
             return false;
         }
 
-        if(definitionTileLayout == DefinitionTileLayout.Down){
+        if(definitionTileLayout == DefinitionTileLayout.SecondWordOnly){
             return false;
         }
 
-        if(word.Length != acrossWordSearch.Length){
+
+        if(word.Length != firstWordSearch.Length){
             return false;
         }
 
         for(int i = 0; i < word.Length; i++){
             char charWord = word[i];
-            char charSearchWord = acrossWordSearch[i];
+            char charSearchWord = firstWordSearch[i];
+
+            if(charSearchWord != '*' && charWord != charSearchWord){
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public bool CanWordFitInSecondWordSearch(string word){
+        if (word == null){
+            return false;
+        }
+
+        if(definitionTileLayout == DefinitionTileLayout.FirstWordOnly){
+            return false;
+        }
+
+        if(word.Length != secondWordSearch.Length){
+            return false;
+        }
+
+        for(int i = 0; i < word.Length; i++){
+            char charWord = word[i];
+            char charSearchWord = secondWordSearch[i];
 
             if(charSearchWord != '*' && charWord != charSearchWord){
                 return false;
@@ -180,118 +208,107 @@ public class DefinitionTile : Tile
     }
 
 
+    public void InitializePossibleFirstWordEntries(List<WordEntry> wordEntries){
+        possibleFirstWordEntries = wordEntries;
+    }
 
-    public bool CanWordFitDown(string word){
-        if (word == null){
-            return false;
-        }
-
-        if(definitionTileLayout == DefinitionTileLayout.Across){
-            return false;
-        }
-
-        if(word.Length != downWordSearch.Length){
-            return false;
-        }
-
-        for(int i = 0; i < word.Length; i++){
-            char charWord = word[i];
-            char charSearchWord = downWordSearch[i];
-
-            if(charSearchWord != '*' && charWord != charSearchWord){
-                return false;
-            }
-        }
-
-        return true;
+    public void InitializePossibleSecondWordEntries(List<WordEntry> wordEntries){
+        possibleSecondWordEntries = wordEntries;
     }
 
 
-    public void InitializePossibleDownWordEntries(List<WordEntry> wordEntries){
-        possibleDownWordEntries = wordEntries;
-    }
+    public void UpdatePossibleFirstWordEntries(){
 
-    public void InitializePossibleAcrossWordEntries(List<WordEntry> wordEntries){
-        possibleAcrossWordEntries = wordEntries;
-    }
-
-
-    public void UpdatePossibleDownWordEntries(){
-
-        if(!finalDownWordEntryIsMissing){
+        if(!finalFirstWordEntryIsMissing){
             return;
         }
 
-        if(possibleDownWordEntries == null){
-            Debug.LogWarning($"Trying to update possibleDownWordEntries of {this} without initializing it first");
+        if(possibleFirstWordEntries == null){
+            Debug.LogWarning($"Trying to update possibleFirstWordEntries of {this} without initializing it first");
             return;
         }
 
         var index = 0;
-        while (index < possibleDownWordEntries.Count){
-            var wordEntryWord = possibleDownWordEntries[index].wordWithoutSpecialChars;
+        while (index < possibleFirstWordEntries.Count){
+            var wordEntryWord = possibleFirstWordEntries[index].wordWithoutSpecialChars;
 
-            //Debug.Log($"For {this}, testing if {wordEntryWord} can fit in {downWordSearch}");
-
-            if(wordEntryWord.Length != downWordSearch.Length){
-                possibleDownWordEntries.RemoveAt(index);
+            if(wordEntryWord.Length != firstWordSearch.Length){
+                possibleFirstWordEntries.RemoveAt(index);
                 continue;
             }
 
-            for (int i = 0; i < downWordSearch.Length; i++){
-                char charWordSearch = downWordSearch[i];
+            var didRemoveEntry = false;
+            for (int i = 0; i < firstWordSearch.Length; i++){
+                char charWordSearch = firstWordSearch[i];
                 char charWordEntryWord = wordEntryWord[i];
 
                 if(charWordSearch != '*' && charWordEntryWord != charWordSearch){
-                    possibleDownWordEntries.RemoveAt(index);
-                    continue;
+                    possibleFirstWordEntries.RemoveAt(index);
+                    //Debug.Log($"For {this}, {wordEntryWord} cannot fit in {firstWordSearch}");
+                    didRemoveEntry = true;
+                    break;
                 }
-
             }
+
+            if(didRemoveEntry){
+                continue;
+            }
+
+            //Debug.Log($"For {this}, {wordEntryWord} can fit in {firstWordSearch}");
+
+            
 
             index ++;
         }
 
-        Debug.Log($"{possibleDownWordEntries.Count} possible down word entries for {this}");
+        Debug.Log($"{possibleFirstWordEntries.Count} possible first word entries for {this}");
     }
 
-    public void UpdatePossibleAcrossWordEntries(){
+    public void UpdatePossibleSecondWordEntries(){
 
-        if(!finalAcrossWordEntryIsMissing){
+        if(!finalSecondWordEntryIsMissing){
             return;
         }
 
-        if(possibleAcrossWordEntries == null){
-            Debug.LogWarning($"Trying to update possibleAcrossWordEntries of {this} without initializing it first");
+        if(possibleSecondWordEntries == null){
+            Debug.LogWarning($"Trying to update possibleSecondWordEntries of {this} without initializing it first");
             return;
         }
 
 
 
         var index = 0;
-        while (index < possibleAcrossWordEntries.Count){
-            var wordEntryWord = possibleAcrossWordEntries[index].wordWithoutSpecialChars;
-            //Debug.Log($"For {this}, testing if {wordEntryWord} can fit in {acrossWordSearch}");
-            if(wordEntryWord.Length != acrossWordSearch.Length){
-                possibleAcrossWordEntries.RemoveAt(index);
+        while (index < possibleSecondWordEntries.Count){
+            var wordEntryWord = possibleSecondWordEntries[index].wordWithoutSpecialChars;
+            //Debug.Log($"For {this}, testing if {wordEntryWord} can fit in {secondWordSearch}");
+            if(wordEntryWord.Length != secondWordSearch.Length){
+                possibleSecondWordEntries.RemoveAt(index);
                 continue;
             }
 
-            for (int i = 0; i < acrossWordSearch.Length; i++){
-                char charWordSearch = acrossWordSearch[i];
+            var didRemoveEntry = false;
+            for (int i = 0; i < secondWordSearch.Length; i++){
+                char charWordSearch = secondWordSearch[i];
                 char charWordEntryWord = wordEntryWord[i];
 
                 if(charWordSearch != '*' && charWordEntryWord != charWordSearch){
-                    possibleAcrossWordEntries.RemoveAt(index);
-                    continue;
+                    possibleSecondWordEntries.RemoveAt(index);
+                    //Debug.Log($"For {this}, {wordEntryWord} cannot fit in {secondWordSearch}");
+                    didRemoveEntry = true;
+                    break;
                 }
-
             }
+
+            if(didRemoveEntry){
+                continue;
+            }
+
+            //Debug.Log($"For {this}, {wordEntryWord} can fit in {secondWordSearch}");
 
             index ++;
         }
 
-        Debug.Log($"{possibleAcrossWordEntries.Count} possible across word entries for {this}");
+        Debug.Log($"{possibleSecondWordEntries.Count} possible second word entries for {this}");
     }
 
 }
