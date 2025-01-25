@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class GridGeneration : MonoBehaviour
@@ -18,11 +19,15 @@ public class GridGeneration : MonoBehaviour
 
     Grid grid;
 
+    List<Grid> validGridHistory;
+
     [SerializeField]
     int seed;
 
     // Start is called before the first frame update
     void Start(){
+
+        validGridHistory = new List<Grid>();
 
         Random.InitState(seed);
 
@@ -66,8 +71,13 @@ public class GridGeneration : MonoBehaviour
     // Update is called once per frame
     void Update(){
         if(Input.GetMouseButtonDown(0)){
-            NextGenerationIteration(grid);
+            var changeWasValid = NextGenerationIteration(grid);
             gridManager.grid = grid;
+            if(!changeWasValid){
+                Debug.Log("Change was not valid, going back to last valid grid");
+                grid = validGridHistory.Last();
+            }
+            
         }
     }
 
@@ -96,7 +106,7 @@ public class GridGeneration : MonoBehaviour
             return false;
         }
 
-        DefinitionTile definitionTile = grid.GetDefinitionTileWithTheLeastPossibleWordEntry(out bool isDownDefinition);
+        DefinitionTile definitionTile = grid.GetDefinitionTileWithTheLeastPossibleWordEntry(out bool isFirstDefinition);
 
         Debug.Log($"DefinitionTile with least possible word entry {definitionTile}");
 
@@ -104,7 +114,14 @@ public class GridGeneration : MonoBehaviour
             return false;
         }
 
-        if(isDownDefinition){
+        if(isFirstDefinition){
+            if(definitionTile.possibleFirstWordEntries.Count == 0){
+                return false;
+            }
+            else{
+                validGridHistory.Add((Grid)grid.Clone());
+            }
+
             var randomIndex = Random.Range(0, definitionTile.possibleFirstWordEntries.Count);
             var wordEntry = definitionTile.possibleFirstWordEntries[randomIndex];
             Debug.Log($"Word chosen for first def of {definitionTile} is {wordEntry.wordWithoutDiacritics}");
@@ -113,9 +130,19 @@ public class GridGeneration : MonoBehaviour
         }
 
         else{
+            if(definitionTile.possibleSecondWordEntries.Count == 0){
+                return false;
+            }
+            else{
+                validGridHistory.Add((Grid)grid.Clone());
+            }
+
+
             var randomIndex = Random.Range(0, definitionTile.possibleSecondWordEntries.Count);
             var wordEntry = definitionTile.possibleSecondWordEntries[randomIndex];
             Debug.Log($"Word chosen for second def of {definitionTile} is {wordEntry.wordWithoutDiacritics}");
+            
+            
             return grid.SetFinalSecondDefinition(definitionTile, wordEntry);
             
         }

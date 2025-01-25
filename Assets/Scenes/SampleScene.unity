@@ -172,7 +172,7 @@ MonoBehaviour:
   wordDictionnaryManager: {fileID: 1744606613}
   width: 9
   height: 10
-  seed: 1
+  seed: 4
 --- !u!114 &624581002
 MonoBehaviour:
   m_ObjectHideFlags: 0

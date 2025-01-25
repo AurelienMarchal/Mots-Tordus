@@ -1,4 +1,6 @@
-public class Tile{
+using System;
+
+public class Tile : ICloneable{
 
     public int x;
 
@@ -22,5 +24,11 @@ public class Tile{
 
     public override string ToString(){
         return $"Tile ({x}, {y})";
+    }
+
+    public  virtual object Clone()
+    {
+        Tile tileClone = new Tile(x, y, isObstacle, isVoid, isDefinition);
+        return tileClone;
     }
 }

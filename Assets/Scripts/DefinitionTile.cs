@@ -311,6 +311,15 @@ public class DefinitionTile : Tile
         Debug.Log($"{possibleSecondWordEntries.Count} possible second word entries for {this}");
     }
 
+
+    public override object Clone()
+    {
+        DefinitionTile tileClone = new DefinitionTile(x, y, definitionTileLayout, secondWordGoesAcross, firstWordGoesDown);
+        tileClone.finalFirstWordEntry = finalFirstWordEntry;
+        tileClone.finalSecondWordEntry = finalSecondWordEntry;
+        return tileClone;
+    }
+
 }
 
 

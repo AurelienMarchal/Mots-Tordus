@@ -1,10 +1,10 @@
+using System;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
 
 // TODO: have list for only definition tiles
-public class Grid{
+public class Grid : ICloneable{
 
     private Tile[] tiles;
     public int width { get; private set; }
@@ -274,6 +274,7 @@ public class Grid{
 
         return true;
     }
+    
 
     public bool SetFinalSecondDefinition(DefinitionTile definitionTile, WordEntry wordEntry){
         if(definitionTile == null){
@@ -354,5 +355,16 @@ public class Grid{
 
     public bool IsValid(){
         return false;
+    }
+
+    public object Clone(){
+        Grid gridClone = new(width, height, obstacles);
+        foreach (var tile in tiles){
+            gridClone.SetTile((Tile)tile.Clone());
+        }
+        
+        gridClone.UpdateTilesReachedByDefinition();
+
+        return gridClone;
     }
 }
