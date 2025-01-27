@@ -113,12 +113,33 @@ public class Grid : ICloneable{
         }
     }
 
+    public bool IsGenerationFinished(){
+        foreach (var tile in tiles){
+            if(tile is DefinitionTile definitionTile){
+                if (definitionTile.finalFirstWordEntryIsMissing || definitionTile.finalSecondWordEntryIsMissing){
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+
     public void UpdateTilesReachedByDefinition(){
         //Loop through def tile list
         foreach (var tile in tiles){
             if(tile is DefinitionTile definitionTile){
                 definitionTile.tilesReachedByFirstDefinition = GetTilesReachedByFirstDefinition(definitionTile);
                 definitionTile.tilesReachedBySecondDefinition = GetTilesReachedBySecondDefinition(definitionTile);
+            }
+        }
+    }
+
+    public void UpdateWordSearches(){
+        //Loop through def tile list
+        foreach (var tile in tiles){
+            if(tile is DefinitionTile definitionTile){
+                definitionTile.UpdateWordSearch();
             }
         }
     }
@@ -248,6 +269,34 @@ public class Grid : ICloneable{
         }
 
         return definitionTileToReturn;
+    }
+
+    public bool IsThereADefinitionTileWith0PossibleWordEntry(out bool isFirstDefinition, out DefinitionTile definitionTileFound){
+        //Loop through def tile list
+        definitionTileFound = null;
+        isFirstDefinition = true;
+        foreach (var tile in tiles){
+            if(tile is DefinitionTile definitionTile){
+                if( definitionTile.finalFirstWordEntryIsMissing && 
+                    definitionTile.possibleFirstWordEntries != null &&
+                    definitionTile.possibleFirstWordEntries.Count == 0){
+                        definitionTileFound = definitionTile;
+                        isFirstDefinition = true;
+                        return true;
+                }
+
+                if( definitionTile.finalSecondWordEntryIsMissing && 
+                    definitionTile.possibleSecondWordEntries != null &&
+                    definitionTile.possibleSecondWordEntries.Count == 0){
+                        definitionTileFound = definitionTile;
+                        isFirstDefinition = false;
+                        return true;
+                    
+                }
+            }
+        }
+
+        return false;
     }
 
     public bool SetFinalFirstDefinition(DefinitionTile definitionTile, WordEntry wordEntry){

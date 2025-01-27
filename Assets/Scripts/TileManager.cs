@@ -76,7 +76,7 @@ public class TileManager : MonoBehaviour
         }
 
         //mainCanvas.gameObject.SetActive(!(tile.isVoid || tile.isObstacle));
-        _renderer.material.color = tile.isObstacle ? colorObstacle : (tile.isVoid ? colorVoid : colorDefault);
+        _renderer.sharedMaterial.color = tile.isObstacle ? colorObstacle : (tile.isVoid ? colorVoid : colorDefault);
 
         switch(tile){
             case DefinitionTile definitionTile:
@@ -90,8 +90,20 @@ public class TileManager : MonoBehaviour
                     definitionTile.definitionTileLayout == DefinitionTileLayout.SecondWordOnly || 
                     definitionTile.definitionTileLayout == DefinitionTileLayout.FirstAndSecondWord
                 );
-                firstDefTextMeshProUGUI.text = definitionTile.firstWordSearch;
-                secondDefTextMeshProUGUI.text = definitionTile.secondWordSearch;
+                if(definitionTile.possibleFirstWordEntries != null){
+                    firstDefTextMeshProUGUI.text = definitionTile.possibleFirstWordEntries.Count.ToString();
+                }
+                else{
+                    firstDefTextMeshProUGUI.text = definitionTile.firstWordSearch;
+                }
+                if(definitionTile.possibleSecondWordEntries != null){
+                    secondDefTextMeshProUGUI.text = definitionTile.possibleSecondWordEntries.Count.ToString();
+                }
+                else{
+                    secondDefTextMeshProUGUI.text = definitionTile.secondWordSearch;
+                }
+                //firstDefTextMeshProUGUI.text = definitionTile.firstWordSearch;
+                //secondDefTextMeshProUGUI.text = definitionTile.secondWordSearch;
                 break;
 
             case LetterTile letterTile:

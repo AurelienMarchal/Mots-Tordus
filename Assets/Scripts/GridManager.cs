@@ -70,7 +70,7 @@ public class GridManager : MonoBehaviour
     TileManager FindTileManageryTile(Tile tile){
         
         foreach (var tileManager in tileManagers){
-            if(tileManager.tile == tile){
+            if(tileManager.tile.x == tile.x && tileManager.tile.y == tile.y){
                 return tileManager;
             }
         }

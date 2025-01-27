@@ -86,7 +86,7 @@ public class WordDictionnary {
 
         if(newWord.IndexOf('*') != -1) {
             var starCount = WordUtils.CountSubstring(newWord, "*");
-            if(starCount < 4){
+            if(false){
                 
                 var indexesToCheck = new int[starCount];
 

@@ -49,6 +49,10 @@ public class WordEntry
 
     }
 
+    public override string ToString(){
+        return wordWithoutDiacritics;
+    }
+
 
     
 }

@@ -43,6 +43,10 @@ public class DefinitionTile : Tile
 
     public List<WordEntry> possibleSecondWordEntries {get; private set;}
 
+    public List<WordEntry> discardedFirstWordEntries {get; private set;}
+
+    public List<WordEntry> discardedSecondWordEntries {get; private set;}
+
     private List<Tile> tilesReachedByFirstDefinition_;
     public List<Tile> tilesReachedByFirstDefinition {
         get{
@@ -100,6 +104,8 @@ public class DefinitionTile : Tile
         tilesReachedByFirstDefinition = null;
         possibleFirstWordEntries = null;
         possibleSecondWordEntries = null;
+        discardedFirstWordEntries = new List<WordEntry>();
+        discardedSecondWordEntries = new List<WordEntry>();
         crossesAtLeastOneWordFirst= false;
         crossesAtLeastOneWordSecond = false;
     }
@@ -230,6 +236,12 @@ public class DefinitionTile : Tile
 
         var index = 0;
         while (index < possibleFirstWordEntries.Count){
+
+            if(discardedFirstWordEntries.Contains(possibleFirstWordEntries[index])){
+                possibleFirstWordEntries.RemoveAt(index);
+                continue;
+            }
+
             var wordEntryWord = possibleFirstWordEntries[index].wordWithoutSpecialChars;
 
             if(wordEntryWord.Length != firstWordSearch.Length){
@@ -261,7 +273,7 @@ public class DefinitionTile : Tile
             index ++;
         }
 
-        Debug.Log($"{possibleFirstWordEntries.Count} possible first word entries for {this}");
+        //Debug.Log($"{possibleFirstWordEntries.Count} possible first word entries for {this}");
     }
 
     public void UpdatePossibleSecondWordEntries(){
@@ -279,6 +291,11 @@ public class DefinitionTile : Tile
 
         var index = 0;
         while (index < possibleSecondWordEntries.Count){
+            if(discardedSecondWordEntries.Contains(possibleSecondWordEntries[index])){
+                possibleSecondWordEntries.RemoveAt(index);
+                continue;
+            }
+
             var wordEntryWord = possibleSecondWordEntries[index].wordWithoutSpecialChars;
             //Debug.Log($"For {this}, testing if {wordEntryWord} can fit in {secondWordSearch}");
             if(wordEntryWord.Length != secondWordSearch.Length){
@@ -308,13 +325,22 @@ public class DefinitionTile : Tile
             index ++;
         }
 
-        Debug.Log($"{possibleSecondWordEntries.Count} possible second word entries for {this}");
+        //Debug.Log($"{possibleSecondWordEntries.Count} possible second word entries for {this}");
     }
 
 
     public override object Clone()
     {
         DefinitionTile tileClone = new DefinitionTile(x, y, definitionTileLayout, secondWordGoesAcross, firstWordGoesDown);
+        if(possibleFirstWordEntries != null){
+            tileClone.InitializePossibleFirstWordEntries(new List<WordEntry>(possibleFirstWordEntries));
+        }
+        if(possibleSecondWordEntries != null){
+            tileClone.InitializePossibleSecondWordEntries(new List<WordEntry>(possibleSecondWordEntries));
+        }
+        
+        tileClone.discardedFirstWordEntries = new List<WordEntry>(discardedFirstWordEntries);
+        tileClone.discardedSecondWordEntries = new List<WordEntry>(discardedSecondWordEntries);
         tileClone.finalFirstWordEntry = finalFirstWordEntry;
         tileClone.finalSecondWordEntry = finalSecondWordEntry;
         return tileClone;
