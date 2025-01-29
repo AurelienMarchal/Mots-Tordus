@@ -18,6 +18,8 @@ public class GridGeneration : MonoBehaviour
     [SerializeField]
     int height;
 
+    bool generationFinised = false;
+
     Grid grid;
 
     List<Grid> validGridHistory;
@@ -69,76 +71,86 @@ public class GridGeneration : MonoBehaviour
         grid.SetTile(new DefinitionTile(3, 8, firstWordGoesDown : false, secondWordGoesAcross: false));
         grid.SetTile(new DefinitionTile(4, 10, firstWordGoesDown : false, secondWordGoesAcross: false));
 
-        grid.UpdateTilesReachedByDefinition();
-
-        SetFirstWord(grid);
-
-        grid.UpdateTilesReachedByDefinition();
-
-        gridManager.grid = grid;
+        UpdateGrid();
+        validGridHistory.Add((Grid)grid.Clone());
+        ResetGenerationAndSetFirstWord();
     }
 
     // Update is called once per frame
     void Update(){
         if(!grid.IsGenerationFinished()){
-            Debug.Log("validGridHistory : "  + String.Join(", ", validGridHistory));
-            Debug.Log("definitionTilesChangedHistory : "  + String.Join(", ", definitionTilesChangedHistory));
-            Debug.Log("wordEntrySetHistory : "  + String.Join(", ", wordEntrySetHistory));
+            //Debug.Log("validGridHistory : "  + string.Join(", ", validGridHistory));
+            //Debug.Log("definitionTilesChangedHistory : "  + string.Join(", ", definitionTilesChangedHistory));
+            //Debug.Log("wordEntrySetHistory : "  + string.Join(", ", wordEntrySetHistory));
 
-
-            var gridIsValid = NextGenerationIteration(grid);
+            UpdateGrid();
             gridManager.grid = grid;
-            if(!gridIsValid){
-                Debug.Log("Change was not valid, going back to last valid grid");
-                validGridHistory.RemoveAt(validGridHistory.Count - 1);
+
+            var gridValidity = CheckGridValidity();
+
+            if(!gridValidity){
+                Debug.Log("Grid not valid, discarding last word and going back");
+
                 grid = validGridHistory.Last();
-                
-                gridManager.grid = grid;
-                var tileChanged = grid.GetTileAt(definitionTilesChangedHistory.Last().x, definitionTilesChangedHistory.Last().y);
-                if(tileChanged is DefinitionTile definitionTileChanged){
-                    if(changeWasOnFirstWordHistory.Last()){
-                        definitionTileChanged.discardedFirstWordEntries.Add(wordEntrySetHistory.Last());
-                        Debug.Log($"Discarding {wordEntrySetHistory.Last().wordWithoutDiacritics} from {definitionTilesChangedHistory.Last()} possible first words");
+
+                var lastWordEntry = wordEntrySetHistory.Last();
+                var lastDefinitionTileChanged = definitionTilesChangedHistory.Last();
+                var lastChangeWasOnFirstWord = changeWasOnFirstWordHistory.Last();
+
+                var wasDiscarded = DiscardWordFromPossibleWordEntries(lastDefinitionTileChanged.x, lastDefinitionTileChanged.y, lastWordEntry, lastChangeWasOnFirstWord);
+                if(!wasDiscarded){
+                    Debug.LogError($"Could not discard word entry");
+                }
+                GoBackOneHistoryIteration();
+            }
+            else{
+                validGridHistory.Add((Grid)grid.Clone());
+                var didChooseWord = ChooseNextWord(out DefinitionTile definitionTileChanged, out WordEntry wordEntryChoosen, out bool isFirstWord);
+                if(didChooseWord){
+                    if(isFirstWord){
+                        grid.SetFinalFirstDefinition(definitionTileChanged, wordEntryChoosen);
                     }
                     else{
-                        definitionTileChanged.discardedSecondWordEntries.Add(wordEntrySetHistory.Last());
-                        Debug.Log($"Discarding {wordEntrySetHistory.Last().wordWithoutDiacritics} from {definitionTilesChangedHistory.Last()} possible second words");
+                        grid.SetFinalSecondDefinition(definitionTileChanged, wordEntryChoosen);
                     }
-                    definitionTilesChangedHistory.RemoveAt(definitionTilesChangedHistory.Count - 1);
-                    wordEntrySetHistory.RemoveAt(wordEntrySetHistory.Count - 1);
-                    changeWasOnFirstWordHistory.RemoveAt(changeWasOnFirstWordHistory.Count - 1);
 
-                    grid.UpdatePossibleWordEntries(wordDictionnaryManager.wordDictionnary);
-                    var check = grid.IsThereADefinitionTileWith0PossibleWordEntry(out bool isFirstWord, out DefinitionTile definitionTileFound);
-                    if(check){
-                        validGridHistory.RemoveAt(validGridHistory.Count - 1);
+                    wordEntrySetHistory.Add(wordEntryChoosen);
+                    definitionTilesChangedHistory.Add(definitionTileChanged);
+                    changeWasOnFirstWordHistory.Add(isFirstWord);
 
-                        tileChanged = grid.GetTileAt(definitionTilesChangedHistory.Last().x, definitionTilesChangedHistory.Last().y);
-
-                        if(tileChanged is DefinitionTile){
-                            definitionTileChanged = (DefinitionTile)tileChanged;
-                            if(changeWasOnFirstWordHistory.Last()){
-                                definitionTileChanged.discardedFirstWordEntries.Add(wordEntrySetHistory.Last());
-                                Debug.Log($"Discarding {wordEntrySetHistory.Last().wordWithoutDiacritics} from {definitionTilesChangedHistory.Last()} possible first words");
-                            }
-                            else{
-                                definitionTileChanged.discardedSecondWordEntries.Add(wordEntrySetHistory.Last());
-                                Debug.Log($"Discarding {wordEntrySetHistory.Last().wordWithoutDiacritics} from {definitionTilesChangedHistory.Last()} possible second words");
-                            }
-                            definitionTilesChangedHistory.RemoveAt(definitionTilesChangedHistory.Count - 1);
-                            wordEntrySetHistory.RemoveAt(wordEntrySetHistory.Count - 1);
-                            changeWasOnFirstWordHistory.RemoveAt(changeWasOnFirstWordHistory.Count - 1);
-
-                            grid = validGridHistory.Last();
-                            gridManager.grid = grid;
-                        }
-                    }
+                }
+                else{
+                    Debug.LogError("Could not choose word");
                 }
             }
         }
+
+        else if(!generationFinised){
+            generationFinised = true;
+            UpdateGrid();
+            gridManager.grid = grid;
+        }
+
+        if(Input.GetKeyDown(KeyCode.R)){
+            ResetGenerationAndSetFirstWord();
+            gridManager.grid = grid;
+            
+        }
     }
 
-    bool SetFirstWord(Grid grid){
+    void ResetGenerationAndSetFirstWord(){
+        generationFinised = false;
+        grid = validGridHistory.First();
+        validGridHistory.Clear();
+        validGridHistory.Add((Grid)grid.Clone());
+        definitionTilesChangedHistory.Clear();
+        wordEntrySetHistory.Clear();
+        changeWasOnFirstWordHistory.Clear();
+        SetFirstWord();
+        UpdateGrid();
+    }
+
+    bool SetFirstWord(){
         DefinitionTile definitionTile = grid.FindDefinitionTileWithLongestFirstWordEntryMissing();
         if(definitionTile == null){
             return false;
@@ -154,63 +166,92 @@ public class GridGeneration : MonoBehaviour
 
     }
 
-    bool NextGenerationIteration(Grid grid){
+
+    bool UpdateGrid(){
         grid.UpdateTilesReachedByDefinition();
+        return grid.UpdatePossibleWordEntries(wordDictionnaryManager.wordDictionnary);
+    }
+
+    bool CheckGridValidity(){
+        return !grid.AtLeastOneDefinitionTileHasNoPossibleWordEntry();
+    }
+
+    bool ChooseNextWord(out DefinitionTile definitionTileChanged, out WordEntry wordEntryChoosen, out bool isFirstWord){
         
-        bool didUpdate = grid.UpdatePossibleWordEntries(wordDictionnaryManager.wordDictionnary);
+        definitionTileChanged = grid.GetDefinitionTileWithTheLeastPossibleWordEntry(out isFirstWord);
 
-        if(!didUpdate){
+        wordEntryChoosen = null;
+
+        Debug.Log($"DefinitionTile with least possible word entry {definitionTileChanged}");
+
+        if(definitionTileChanged == null){
             return false;
         }
 
-        DefinitionTile definitionTile = grid.GetDefinitionTileWithTheLeastPossibleWordEntry(out bool isFirstDefinition);
-
-        Debug.Log($"DefinitionTile with least possible word entry {definitionTile}");
-
-        if(definitionTile == null){
-            return false;
-        }
-
-        if(isFirstDefinition){
-            if(definitionTile.possibleFirstWordEntries.Count == 0){
+        if(isFirstWord){
+            if(definitionTileChanged.possibleFirstWordEntries.Count == 0){
                 return false;
             }
-            else{
-                validGridHistory.Add((Grid)grid.Clone());
-            }
 
-            var randomIndex = UnityEngine.Random.Range(0, definitionTile.possibleFirstWordEntries.Count);
-            randomIndex = definitionTile.possibleFirstWordEntries.Count - 1;
-            var wordEntry = definitionTile.possibleFirstWordEntries[randomIndex];
-            wordEntrySetHistory.Add(wordEntry);
-            definitionTilesChangedHistory.Add(definitionTile);
-            changeWasOnFirstWordHistory.Add(true);
-            Debug.Log($"Word chosen for first def of {definitionTile} is {wordEntry.wordWithoutDiacritics}");
+            var randomIndex = UnityEngine.Random.Range(0, definitionTileChanged.possibleFirstWordEntries.Count);
+            //randomIndex = definitionTileChanged.possibleFirstWordEntries.Count - 1;
+            wordEntryChoosen = definitionTileChanged.possibleFirstWordEntries[randomIndex];
+            //wordEntrySetHistory.Add(wordEntrySet);
+            //definitionTilesChangedHistory.Add(definitionTileChanged);
+            //changeWasOnFirstWordHistory.Add(true);
+            Debug.Log($"Word chosen for first def of {definitionTileChanged} is {wordEntryChoosen.wordWithoutDiacritics}");
 
-            return grid.SetFinalFirstDefinition(definitionTile, wordEntry);
+            return true;
             
         }
 
         else{
-            if(definitionTile.possibleSecondWordEntries.Count == 0){
+            if(definitionTileChanged.possibleSecondWordEntries.Count == 0){
                 return false;
             }
-            else{
-                validGridHistory.Add((Grid)grid.Clone());
-            }
 
+            var randomIndex = UnityEngine.Random.Range(0, definitionTileChanged.possibleSecondWordEntries.Count);
+            //randomIndex = definitionTileChanged.possibleSecondWordEntries.Count - 1;
+            wordEntryChoosen = definitionTileChanged.possibleSecondWordEntries[randomIndex];
+            //wordEntrySetHistory.Add(wordEntrySet);
+            //definitionTilesChangedHistory.Add(definitionTileChanged);
+            //changeWasOnFirstWordHistory.Add(false);
+            Debug.Log($"Word chosen for second def of {definitionTileChanged} is {wordEntryChoosen.wordWithoutDiacritics}");
 
-            var randomIndex = UnityEngine.Random.Range(0, definitionTile.possibleSecondWordEntries.Count);
-            randomIndex = 0;
-            var wordEntry = definitionTile.possibleSecondWordEntries[randomIndex];
-            wordEntrySetHistory.Add(wordEntry);
-            definitionTilesChangedHistory.Add(definitionTile);
-            changeWasOnFirstWordHistory.Add(false);
-            Debug.Log($"Word chosen for second def of {definitionTile} is {wordEntry.wordWithoutDiacritics}");
-            
-            
-            return grid.SetFinalSecondDefinition(definitionTile, wordEntry);
+            return true;
             
         }
+    }
+
+    void GoBackOneHistoryIteration(){
+        validGridHistory.RemoveAt(validGridHistory.Count - 1);
+        definitionTilesChangedHistory.RemoveAt(definitionTilesChangedHistory.Count - 1);
+        wordEntrySetHistory.RemoveAt(wordEntrySetHistory.Count - 1);
+        changeWasOnFirstWordHistory.RemoveAt(changeWasOnFirstWordHistory.Count - 1);
+    }
+
+
+
+    bool DiscardWordFromPossibleWordEntries(int definitionTileX, int definitionTileY, WordEntry wordEntryToRemove, bool isFirstDef){
+        var tile = grid.GetTileAt(definitionTileX, definitionTileY);
+        if(tile != null && tile is DefinitionTile definitionTile){
+            if(isFirstDef){
+                if(!definitionTile.discardedFirstWordEntries.Contains(wordEntryToRemove)){
+                    definitionTile.discardedFirstWordEntries.Add(wordEntryToRemove);
+                    Debug.Log($"Discarding {wordEntryToRemove.wordWithoutDiacritics} from {definitionTile} possible first words");
+                    
+                }
+            }
+            else{
+                if(!definitionTile.discardedSecondWordEntries.Contains(wordEntryToRemove)){
+                    definitionTile.discardedSecondWordEntries.Add(wordEntryToRemove);
+                    Debug.Log($"Discarding {wordEntryToRemove.wordWithoutDiacritics} from {definitionTile} possible second words");
+                }
+            }
+            return true;
+        }
+        
+        return false;
+        
     }
 }
