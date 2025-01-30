@@ -85,7 +85,8 @@ public class WordDictionnary {
         newWord = WordUtils.RemoveSpecialChars(newWord);
 
         if(newWord.IndexOf('*') != -1) {
-            var starCount = WordUtils.CountSubstring(newWord, "*");
+            //var starCount = WordUtils.CountSubstring(newWord, "*");
+            /*
             if(false){
                 
                 var indexesToCheck = new int[starCount];
@@ -138,31 +139,32 @@ public class WordDictionnary {
 
 
             }
-            else{
-                if(wordDictionnaryByWordLenght.ContainsKey(newWord.Length)){
-                    foreach(var wordEntry in wordDictionnaryByWordLenght[newWord.Length]){
-                        
-                        if(newWord.Length != wordEntry.wordWithoutSpecialChars.Length){
-                            continue;
+            */
+            
+            if(wordDictionnaryByWordLenght.ContainsKey(newWord.Length)){
+                foreach(var wordEntry in wordDictionnaryByWordLenght[newWord.Length]){
+                    
+                    if(newWord.Length != wordEntry.wordWithoutSpecialChars.Length){
+                        continue;
+                    }
+
+                    iterations ++;
+
+                    var matchFound = true;
+
+                    for (int i = 0; i < newWord.Length; i++){
+                        matchFound = newWord[i] == '*' || newWord[i] == wordEntry.wordWithoutSpecialChars[i];
+                        if(!matchFound){
+                            break;
                         }
+                    }
 
-                        iterations ++;
-
-                        var matchFound = true;
-
-                        for (int i = 0; i < newWord.Length; i++){
-                            matchFound = newWord[i] == '*' || newWord[i] == wordEntry.wordWithoutSpecialChars[i];
-                            if(!matchFound){
-                                break;
-                            }
-                        }
-
-                        if(matchFound){
-                            results.Add(wordEntry);
-                        }
+                    if(matchFound){
+                        results.Add(wordEntry);
                     }
                 }
             }
+            
         }
 
         else {

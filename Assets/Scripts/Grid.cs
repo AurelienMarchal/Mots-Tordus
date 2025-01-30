@@ -78,22 +78,48 @@ public class Grid : ICloneable{
     }
 
 
-    void GenerateTopAndRightDefinitionTiles(){
+    public void GenerateTopAndRightDefinitionTiles(){
         foreach (var tile in tiles){
-            if(IsTileAtTopLeftCorner(tile)){
+            if(tile.isVoid && IsTileAtTopLeftCorner(tile) && IsValidTileForDefinition(tile)){
                 SetTile(new DefinitionTile(tile.x, tile.y, firstWordGoesDown:true, secondWordGoesAcross:true));
             }
         }
 
-        /*
-        for (int i = 2; i < width; i += 2){
-            SetTile(new DefinitionTile(i, 0));
+        
+        for (int i = 0; i < width; i ++){
+            for (int j = 0; j < height; j ++){
+                var currentTile = GetTileAt(i, j);
+                if(currentTile == null){
+                    continue;
+                }
+                if(currentTile.isVoid){
+                    if(IsTileAtTheTop(currentTile) && IsValidTileForDefinition(currentTile)){
+                        SetTile(new DefinitionTile(i, j, firstWordGoesDown:true));
+                    }
+                    if(IsTileOnTheLeft(currentTile) && IsValidTileForDefinition(currentTile)){
+                        SetTile(new DefinitionTile(i, j, secondWordGoesAcross:true));
+                    }
+                }
+            }
         }
+    }
 
-        for (int j = 2; j < height; j += 2){
-            SetTile(new DefinitionTile(0, j));
+    bool IsValidTileForDefinition(Tile tile){
+        var topTile = GetTileAt(tile.x, tile.y - 1);
+        var leftTile = GetTileAt(tile.x - 1, tile.y);
+        if(leftTile != null && IsTileAtTheTop(tile) && leftTile.isDefinition){
+            return false;
         }
-        */
+        if(topTile != null & IsTileOnTheLeft(tile) && topTile.isDefinition){
+            return false;
+        }
+        return true;
+
+
+    }
+
+    bool IsDefinitionTilesLayoutValid(){
+        return true;
     }
 
     bool IsTileAtTopLeftCorner(Tile tile){
@@ -101,6 +127,16 @@ public class Grid : ICloneable{
         var leftTile = GetTileAt(tile.x - 1, tile.y);
 
         return (topTile == null || topTile.isObstacle) && (leftTile == null || leftTile.isObstacle);
+    }
+
+    bool IsTileAtTheTop(Tile tile){
+        var topTile = GetTileAt(tile.x, tile.y - 1);
+        return topTile == null || topTile.isObstacle;
+    }
+
+    bool IsTileOnTheLeft(Tile tile){
+        var leftTile = GetTileAt(tile.x - 1, tile.y);
+        return leftTile == null || leftTile.isObstacle;
     }
 
     void GenerateObstacleTiles(){
@@ -355,16 +391,7 @@ public class Grid : ICloneable{
     }
 
 
-    bool IsValidTileForDefinition(Tile tile){
-
-        return true;
-
-
-    }
-
-    bool IsDefinitionTilesLayoutValid(){
-        return true;
-    }
+    
 
     public List<Tile> GetTilesReachedByFirstDefinition(DefinitionTile definitionTile){
         

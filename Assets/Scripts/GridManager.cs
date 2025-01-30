@@ -107,6 +107,9 @@ public class GridManager : MonoBehaviour
 
 
     void HighlightTiles(List<Tile> tiles){
+        if(tiles == null){
+            return;
+        }
         foreach (var tileManager in tileManagers){
             if(tiles.Contains(tileManager.tile)){
                 tileManager.isHighlighted = true;

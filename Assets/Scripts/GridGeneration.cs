@@ -43,8 +43,15 @@ public class GridGeneration : MonoBehaviour
 
         UnityEngine.Random.InitState(seed);
 
-        grid = new Grid(9, 11, new List<Obstacle>{new Obstacle(7, 9, 2, 2)});
+        grid = new Grid(9, 11, new List<Obstacle>{new Obstacle(0, 0, 2, 2), new Obstacle(4, 4, 2, 2)});
 
+        grid.GenerateTopAndRightDefinitionTiles();
+
+        gridManager.grid = grid;
+
+        generationFinised = true;
+
+        /*
         grid.SetTile(new DefinitionTile(0, 0, firstWordGoesDown: true, secondWordGoesAcross: true));
 
         grid.SetTile(new DefinitionTile(2, 0, firstWordGoesDown : true, secondWordGoesAcross: false));
@@ -74,11 +81,12 @@ public class GridGeneration : MonoBehaviour
         UpdateGrid();
         validGridHistory.Add((Grid)grid.Clone());
         ResetGenerationAndSetFirstWord();
+        */
     }
 
     // Update is called once per frame
     void Update(){
-        if(!grid.IsGenerationFinished()){
+        if(!grid.IsGenerationFinished() && !generationFinised){
             //Debug.Log("validGridHistory : "  + string.Join(", ", validGridHistory));
             //Debug.Log("definitionTilesChangedHistory : "  + string.Join(", ", definitionTilesChangedHistory));
             //Debug.Log("wordEntrySetHistory : "  + string.Join(", ", wordEntrySetHistory));
