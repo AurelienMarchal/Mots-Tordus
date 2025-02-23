@@ -10,6 +10,8 @@ public class Grid : ICloneable{
     public int width { get; private set; }
     public int height { get; private set; }
 
+    public bool definitionTileLayoutFinished;
+
     private List<Obstacle> obstacles;
 
     public Grid(int width, int height, List<Obstacle> obstacles){
@@ -17,6 +19,8 @@ public class Grid : ICloneable{
         this.height = height;
 
         tiles = new Tile[width * height];
+
+        definitionTileLayoutFinished = false;
 
         for(int i = 0; i < width; i++){
             for (int j = 0; j < height; j++){
@@ -119,8 +123,50 @@ public class Grid : ICloneable{
     }
 
     bool IsDefinitionTilesLayoutValid(){
+
+        //Loop through def tile list
+        foreach (var tile in tiles){
+            if(tile is DefinitionTile definitionTile){
+                if(definitionTile.tilesReachedByFirstDefinition != null && definitionTile.tilesReachedByFirstDefinition.Count < 2){
+                    return false;
+                }
+                if(definitionTile.tilesReachedBySecondDefinition != null && definitionTile.tilesReachedBySecondDefinition.Count < 2){
+                    return false;
+                }
+            }
+        }
+
         return true;
     }
+
+    public void GetDefinitionTileWithMostTilesReachedByDefinition(out DefinitionTile definitionTile, out bool isFirstDefinition){
+
+        var maxTilesReachedByDef = 0;
+        isFirstDefinition = true;
+        definitionTile = null;
+
+        //Loop through def tile list
+        foreach (var tile in tiles){
+            if(tile is DefinitionTile definitionTile_){
+                if(definitionTile_.tilesReachedByFirstDefinition != null){
+                    if(definitionTile_.tilesReachedByFirstDefinition.Count > maxTilesReachedByDef){
+                        definitionTile = definitionTile_;
+                        isFirstDefinition = true;
+                        maxTilesReachedByDef = definitionTile_.tilesReachedByFirstDefinition.Count;
+                    }
+                }
+                if(definitionTile_.tilesReachedBySecondDefinition != null){
+                    if(definitionTile_.tilesReachedBySecondDefinition.Count > maxTilesReachedByDef){
+                        definitionTile = definitionTile_;
+                        isFirstDefinition = false;
+                        maxTilesReachedByDef = definitionTile_.tilesReachedBySecondDefinition.Count;
+                    }
+                }
+            }
+        }
+    }
+
+
 
     bool IsTileAtTopLeftCorner(Tile tile){
         var topTile = GetTileAt(tile.x, tile.y - 1);
@@ -435,6 +481,7 @@ public class Grid : ICloneable{
 
     public object Clone(){
         Grid gridClone = new(width, height, obstacles);
+        gridClone.definitionTileLayoutFinished = definitionTileLayoutFinished;
         foreach (var tile in tiles){
             gridClone.SetTile((Tile)tile.Clone());
         }

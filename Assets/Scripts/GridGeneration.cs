@@ -18,6 +18,11 @@ public class GridGeneration : MonoBehaviour
     [SerializeField]
     int height;
 
+    [SerializeField]
+    int nbOfDefTilesToGenerate;
+
+    int nbOfDefTilesGenerated = 0;
+
     bool generationFinised = false;
 
     Grid grid;
@@ -33,6 +38,9 @@ public class GridGeneration : MonoBehaviour
     [SerializeField]
     int seed;
 
+    [SerializeField]
+    bool nextStepClick = false;
+
     // Start is called before the first frame update
     void Start(){
 
@@ -41,6 +49,8 @@ public class GridGeneration : MonoBehaviour
         wordEntrySetHistory = new List<WordEntry>();
         changeWasOnFirstWordHistory = new List<bool>();
 
+        nbOfDefTilesGenerated = 0;
+
         UnityEngine.Random.InitState(seed);
 
         grid = new Grid(9, 11, new List<Obstacle>{new Obstacle(0, 0, 2, 2), new Obstacle(4, 4, 2, 2)});
@@ -48,8 +58,6 @@ public class GridGeneration : MonoBehaviour
         grid.GenerateTopAndRightDefinitionTiles();
 
         gridManager.grid = grid;
-
-        generationFinised = true;
 
         /*
         grid.SetTile(new DefinitionTile(0, 0, firstWordGoesDown: true, secondWordGoesAcross: true));
@@ -86,7 +94,50 @@ public class GridGeneration : MonoBehaviour
 
     // Update is called once per frame
     void Update(){
-        if(!grid.IsGenerationFinished() && !generationFinised){
+
+        if(nbOfDefTilesGenerated >= nbOfDefTilesToGenerate){
+            grid.definitionTileLayoutFinished = true;
+        }
+
+        if(!grid.definitionTileLayoutFinished){
+
+            grid.UpdateTilesReachedByDefinition();
+
+            grid.GetDefinitionTileWithMostTilesReachedByDefinition(out DefinitionTile definitionTile, out bool isFirstDef);
+
+            if(definitionTile != null){
+                if(isFirstDef){
+                    var tilesReachedCount = definitionTile.tilesReachedByFirstDefinition.Count;
+                    var randomIndex = UnityEngine.Random.Range(2, tilesReachedCount);
+                    var tileChoosen = definitionTile.tilesReachedByFirstDefinition[randomIndex];
+                    DefinitionTile definitionTileGenerated = new DefinitionTile(
+                        tileChoosen.x, 
+                        tileChoosen.y,
+                        firstWordGoesDown:false,
+                        secondWordGoesAcross:false);
+                    grid.SetTile(definitionTileGenerated);
+                    nbOfDefTilesGenerated ++;
+                }
+                else{
+                    var tilesReachedCount = definitionTile.tilesReachedBySecondDefinition.Count;
+                    var randomIndex = UnityEngine.Random.Range(2, tilesReachedCount);
+                    var tileChoosen = definitionTile.tilesReachedBySecondDefinition[randomIndex];
+                    DefinitionTile definitionTileGenerated = new DefinitionTile(
+                        tileChoosen.x, 
+                        tileChoosen.y,
+                        firstWordGoesDown:false,
+                        secondWordGoesAcross:false);
+                    grid.SetTile(definitionTileGenerated);
+                    nbOfDefTilesGenerated ++;
+                }
+            }
+
+            gridManager.grid = grid;
+
+        }
+
+
+        if(grid.definitionTileLayoutFinished && !grid.IsGenerationFinished() && !generationFinised){
             //Debug.Log("validGridHistory : "  + string.Join(", ", validGridHistory));
             //Debug.Log("definitionTilesChangedHistory : "  + string.Join(", ", definitionTilesChangedHistory));
             //Debug.Log("wordEntrySetHistory : "  + string.Join(", ", wordEntrySetHistory));
@@ -133,13 +184,13 @@ public class GridGeneration : MonoBehaviour
             }
         }
 
-        else if(!generationFinised){
+        else if(grid.definitionTileLayoutFinished && !generationFinised){
             generationFinised = true;
             UpdateGrid();
             gridManager.grid = grid;
         }
 
-        if(Input.GetKeyDown(KeyCode.R)){
+        if(grid.definitionTileLayoutFinished && Input.GetKeyDown(KeyCode.R)){
             ResetGenerationAndSetFirstWord();
             gridManager.grid = grid;
             
